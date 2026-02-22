@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZAI Simulation — Master Summary</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;color:#333}
+header{background:#1a1a2e;color:#fff;padding:24px 32px}
+header h1{font-size:1.4em;font-weight:500}
+.summary-line{margin-top:8px;font-size:1em;opacity:0.9}
+main{max-width:1200px;margin:0 auto;padding:24px}
+section{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:0.9em}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #e0e0e0}
+th{background:#f8f9fa;font-weight:600}
+a{color:#4285f4;text-decoration:none}
+a:hover{text-decoration:underline}
+.badge{padding:3px 10px;border-radius:3px;font-weight:700;font-size:0.8em}
+.badge.pass{background:#34a853;color:#fff}
+.badge.soft-fail{background:#ea8c00;color:#fff}
+.badge.hard-fail{background:#ea4335;color:#fff}
+footer{text-align:center;padding:16px;color:#999;font-size:0.8em}
+</style>
+</head>
+<body>
+<header>
+ <h1>ZAI Simulation — Master Summary</h1>
+ <div class="summary-line">12 / 13 scenarios passed</div>
+</header>
+<main>
+<section>
+<table>
+<tr>
+ <th>Scenario</th><th>Verdict</th><th>Mean Peg Dev</th>
+ <th>Bad Debt</th><th>Liquidations</th><th>Halt Blocks</th><th>Final Price</th>
+</tr>
+<tr><td><a href="steady_state.html">steady_state</a></td><td><span class="badge pass">PASS</span></td><td>0.19%</td><td>0.00</td><td>0</td><td>0</td><td>49.81</td></tr>
+<tr><td><a href="black_thursday.html">black_thursday</a></td><td><span class="badge pass">PASS</span></td><td>3.03%</td><td>0.00</td><td>0</td><td>0</td><td>47.89</td></tr>
+<tr><td><a href="flash_crash.html">flash_crash</a></td><td><span class="badge pass">PASS</span></td><td>2.06%</td><td>0.00</td><td>0</td><td>0</td><td>47.89</td></tr>
+<tr><td><a href="sustained_bear.html">sustained_bear</a></td><td><span class="badge pass">PASS</span></td><td>3.92%</td><td>0.00</td><td>0</td><td>0</td><td>47.89</td></tr>
+<tr><td><a href="twap_manipulation.html">twap_manipulation</a></td><td><span class="badge pass">PASS</span></td><td>0.36%</td><td>0.00</td><td>0</td><td>0</td><td>49.82</td></tr>
+<tr><td><a href="liquidity_crisis.html">liquidity_crisis</a></td><td><span class="badge pass">PASS</span></td><td>3.14%</td><td>0.00</td><td>0</td><td>0</td><td>51.75</td></tr>
+<tr><td><a href="bank_run.html">bank_run</a></td><td><span class="badge pass">PASS</span></td><td>5.97%</td><td>0.00</td><td>0</td><td>0</td><td>41.85</td></tr>
+<tr><td><a href="bull_market.html">bull_market</a></td><td><span class="badge pass">PASS</span></td><td>3.64%</td><td>0.00</td><td>0</td><td>0</td><td>51.82</td></tr>
+<tr><td><a href="oracle_comparison.html">oracle_comparison</a></td><td><span class="badge pass">PASS</span></td><td>2.31%</td><td>0.00</td><td>0</td><td>0</td><td>48.09</td></tr>
+<tr><td><a href="combined_stress.html">combined_stress</a></td><td><span class="badge pass">PASS</span></td><td>3.93%</td><td>0.00</td><td>0</td><td>0</td><td>47.89</td></tr>
+<tr><td><a href="demand_shock.html">demand_shock</a></td><td><span class="badge soft-fail">SOFT FAIL</span></td><td>19.26%</td><td>0.00</td><td>0</td><td>0</td><td>35.83</td></tr>
+<tr><td><a href="miner_capitulation.html">miner_capitulation</a></td><td><span class="badge pass">PASS</span></td><td>7.38%</td><td>0.00</td><td>0</td><td>0</td><td>44.56</td></tr>
+<tr><td><a href="sequencer_downtime.html">sequencer_downtime</a></td><td><span class="badge pass">PASS</span></td><td>1.68%</td><td>0.00</td><td>0</td><td>0</td><td>47.89</td></tr>
+
+</table>
+</section>
+<section>
+<h3>Data Export</h3>
+<button onclick="downloadAll()" style="padding:8px 20px;background:#4285f4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.9em">Download All (CSV)</button>
+</section>
+<script>
+const SCENARIOS=[{name:"steady_state",verdict:"PASS",mean_dev:0.187055,max_dev:0.373388,bad_debt:0.00,liqs:0,halts:0,price:49.8133},{name:"black_thursday",verdict:"PASS",mean_dev:3.025199,max_dev:4.229309,bad_debt:0.00,liqs:0,halts:0,price:47.8853},{name:"flash_crash",verdict:"PASS",mean_dev:2.057950,max_dev:4.229309,bad_debt:0.00,liqs:0,halts:0,price:47.8853},{name:"sustained_bear",verdict:"PASS",mean_dev:3.916026,max_dev:4.223656,bad_debt:0.00,liqs:0,halts:0,price:47.8882},{name:"twap_manipulation",verdict:"PASS",mean_dev:0.355155,max_dev:8.993804,bad_debt:0.00,liqs:0,halts:0,price:49.8201},{name:"liquidity_crisis",verdict:"PASS",mean_dev:3.137348,max_dev:3.984583,bad_debt:0.00,liqs:0,halts:0,price:51.7455},{name:"bank_run",verdict:"PASS",mean_dev:5.969675,max_dev:16.295225,bad_debt:0.00,liqs:0,halts:0,price:41.8524},{name:"bull_market",verdict:"PASS",mean_dev:3.643166,max_dev:3.970153,bad_debt:0.00,liqs:0,halts:0,price:51.8169},{name:"oracle_comparison",verdict:"PASS",mean_dev:2.310048,max_dev:3.884675,bad_debt:0.00,liqs:0,halts:0,price:48.0903},{name:"combined_stress",verdict:"PASS",mean_dev:3.926078,max_dev:4.223355,bad_debt:0.00,liqs:0,halts:0,price:47.8883},{name:"demand_shock",verdict:"SOFT FAIL",mean_dev:19.257634,max_dev:28.340121,bad_debt:0.00,liqs:0,halts:0,price:35.8299},{name:"miner_capitulation",verdict:"PASS",mean_dev:7.376932,max_dev:10.879896,bad_debt:0.00,liqs:0,halts:0,price:44.5601},{name:"sequencer_downtime",verdict:"PASS",mean_dev:1.675291,max_dev:4.229309,bad_debt:0.00,liqs:0,halts:0,price:47.8853}];
+function downloadAll(){
+ let csv='scenario,verdict,mean_peg_deviation,max_peg_deviation,total_bad_debt,total_liquidations,halt_blocks,final_amm_price\n';
+ for(const s of SCENARIOS){
+  csv+=s.name+','+s.verdict+','+s.mean_dev+','+s.max_dev+','+s.bad_debt+','+s.liqs+','+s.halts+','+s.price+'\n';
+ }
+ const blob=new Blob([csv],{type:'text/csv'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;a.download='zai_all_scenarios.csv';a.click();
+ URL.revokeObjectURL(url);
+}
+</script>
+</main>
+<footer>Generated by zai-sim</footer>
+</body>
+</html>
