@@ -9,6 +9,8 @@ pub struct LiquidationConfig {
     pub keeper_reward_pct: f64,
     /// Fraction of penalty applied during self-liquidation (0.0 = no penalty)
     pub self_liquidation_penalty_pct: f64,
+    /// Fraction of non-keeper penalty routed to LPs via AMM reserve injection (0.0 = none)
+    pub liquidation_penalty_to_lps_pct: f64,
 }
 
 impl Default for LiquidationConfig {
@@ -17,6 +19,7 @@ impl Default for LiquidationConfig {
             max_liquidations_per_block: 5,
             keeper_reward_pct: 0.50,
             self_liquidation_penalty_pct: 0.0,
+            liquidation_penalty_to_lps_pct: 0.0,
         }
     }
 }
@@ -180,9 +183,18 @@ impl LiquidationEngine {
         // Keeper reward is a fraction of actual penalty collected
         let keeper_reward = actual_penalty * keeper_reward_fraction;
 
+        // Route a share of the non-keeper penalty to LPs via AMM reserves
+        let lp_penalty_share =
+            (actual_penalty - keeper_reward) * self.config.liquidation_penalty_to_lps_pct;
+        if lp_penalty_share > 0.0 {
+            amm.reserve_zai += lp_penalty_share;
+            amm.k = amm.reserve_zec * amm.reserve_zai;
+            amm.cumulative_fees_zai += lp_penalty_share;
+        }
+
         // Update engine state
         self.total_bad_debt += bad_debt;
-        self.total_penalties_collected += actual_penalty - keeper_reward;
+        self.total_penalties_collected += actual_penalty - keeper_reward - lp_penalty_share;
         self.total_keeper_rewards += keeper_reward;
         self.liquidations_this_block += 1;
 

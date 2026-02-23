@@ -784,3 +784,41 @@ Side-by-side comparison proving the core thesis: same collateral, same crash, di
 | **Root cause** | Oracle-based liquidation uses the external price directly — during a crash, this price drops immediately and stays low, triggering mass liquidation of all vaults below min_ratio. The seized collateral is dumped on the AMM, depressing the AMM price and worsening peg deviation. In contrast, TWAP-based liquidation smooths out transient drops (flash crash) and delays liquidation eligibility during sustained drops, giving the system time to absorb shocks. The TWAP acts as a built-in circuit breaker against panic cascading. |
 | **Implication** | This is the core thesis proof for oracle-free design. Traditional oracle-based CDP systems (MakerDAO) are vulnerable to exactly this failure mode: a rapid external price drop triggers mass liquidation, collateral flooding the market depresses prices further, and the system enters a death spiral. ZAI's TWAP oracle trades precision (chronic peg deviation) for resilience (no death spirals). The flash crash result is most striking — oracle-based destroys all 25 vaults for a price drop that fully recovers, while oracle-free correctly ignores the transient. |
 | **Strength/Weakness** | **Strength: Death spiral immunity** — Oracle-free design prevents the exact failure mode that caused $6M bad debt on MakerDAO's Black Thursday 2020. Same collateral, same crash, different oracle → fundamentally different outcome. |
+
+---
+
+## 2026-02-23 — LP Incentive Parameter Sweep
+
+Systematic sweep of fee rates and liquidation penalty sharing to test whether any configuration makes private LPs self-sustaining through crashes.
+
+### F-034: No Fee/Penalty Configuration Makes LPs Profitable Through Crashes
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | PARAM-FAIL |
+| **Scenario** | 64-run sweep: 4 fee rates (2%, 5%, 10%, 15%) × 4 penalty LP shares (0%, 25%, 50%, 100%) × 4 scenarios (steady_state, black_thursday, sustained_bear, flash_crash). Config: $5M AMM, 200% CR, 240-block TWAP, Tick controller, 25 vaults at 210-280% CR, stability_fee_to_lps=true. |
+| **Finding** | Only 16 of 64 runs (25%) are profitable — all 16 are steady_state. No crash scenario produces a profitable LP at ANY fee/penalty configuration. The best crash result (flash_crash, fee=15%, pen=100%) still loses $200K on a $10M entry. Even routing 100% of liquidation penalties to LPs at 15% stability fee, Black Thursday LP loses $1.6M and sustained bear loses $3.9M. Fees generated across the sweep range from $542 (steady, 2%) to $22,769 (sustained bear, 15%, pen=100%) — economically negligible vs the $1.6M-$3.9M losses from ZEC price exposure. |
+| **Root cause** | LP P&L is dominated by the underlying ZEC price movement, not by fee income or penalty redistribution. The genesis LP holds $5M in ZEC + $5M in ZAI. When ZEC crashes 30-70%, the ZEC half of the position loses $1.5M-$3.5M. Maximum fee income across all configs is ~$23K — less than 1% of the loss. The liquidation penalty pool is small because most liquidations generate modest penalties relative to the total pool size. Even at 100% penalty-to-LP routing, the additional income is ~$20K — irrelevant against million-dollar losses. |
+| **Implication** | Fee-based LP incentives cannot compensate for directional ZEC exposure during crashes. This definitively confirms F-027A (stability fees negligible) and extends it to liquidation penalty sharing. The ~$2.5M protocol-owned liquidity requirement from F-027B remains the only viable path to sustained AMM depth. No configuration of fees or penalty sharing changes this conclusion. |
+| **Strength/Weakness** | **Weakness (confirmed)** — LP profitability during crashes is a fundamental impossibility with any fee/penalty configuration. Protocol-owned liquidity is non-negotiable. |
+
+#### Sweep Summary
+
+| Scenario | Profitable Configs | Best Config P&L | Worst Config P&L |
+|----------|:---:|:---:|:---:|
+| steady_state | 16 / 16 (100%) | +$623 (fee=15%, pen=100%) | +$569 (fee=2%, pen=0%) |
+| black_thursday | 0 / 16 (0%) | -$1,603,183 (fee=15%, pen=100%) | -$1,622,727 (fee=2%, pen=0%) |
+| sustained_bear | 0 / 16 (0%) | -$3,882,762 (fee=15%, pen=100%) | -$3,902,274 (fee=2%, pen=0%) |
+| flash_crash | 0 / 16 (0%) | -$200,327 (fee=15%, pen=100%) | -$200,381 (fee=2%, pen=0%) |
+
+#### Key Insight: Fee Income vs Price Exposure
+
+| Config (best case: fee=15%, pen=100%) | Fees Generated | ZEC Loss | Fee/Loss Ratio |
+|:---:|:---:|:---:|:---:|
+| steady_state | $596 | $0 | N/A (profitable) |
+| black_thursday | $22,548 | -$1,625,731 | 1.4% |
+| sustained_bear | $22,770 | -$3,905,532 | 0.6% |
+| flash_crash | $1,695 | -$202,022 | 0.8% |
+
+Fee income covers less than 1.5% of crash losses in the best configuration tested.
