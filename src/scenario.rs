@@ -39,6 +39,8 @@ pub struct BlockMetrics {
     pub arber_zec_total: f64,
     pub cumulative_fees_zai: f64,
     pub cumulative_il_pct: f64,
+    // Graduated liquidation metrics
+    pub graduated_liquidation_count: u32,
 }
 
 /// Configuration for a scenario run.
@@ -71,6 +73,8 @@ pub struct ScenarioConfig {
     // instead of AMM TWAP. Demonstrates death spiral when combined with
     // use_amm_liquidation=true (collateral sold through AMM).
     pub use_external_oracle_for_liquidation: bool,
+    /// Graduated (partial) liquidation: deleverage warning-zone vaults gradually
+    pub use_graduated_liquidation: bool,
 }
 
 impl Default for ScenarioConfig {
@@ -96,6 +100,7 @@ impl Default for ScenarioConfig {
             zombie_gap_threshold: 0.5,
             stability_fee_to_lps: false,
             use_external_oracle_for_liquidation: false,
+            use_graduated_liquidation: false,
         }
     }
 }
@@ -292,7 +297,15 @@ impl Scenario {
         // (5) AMM records price for TWAP
         self.amm.record_price(block);
 
-        // (6 & 7) Liquidation engine scans and executes
+        // (6a) Graduated liquidation pass: partially liquidate warning-zone vaults
+        let graduated_results = if self.config.use_graduated_liquidation {
+            self.liquidation_engine
+                .graduated_liquidate(&mut self.registry, &mut self.amm, block)
+        } else {
+            Vec::new()
+        };
+
+        // (6b & 7) Liquidation engine scans and executes
         let liq_results = if self.config.use_external_oracle_for_liquidation {
             // Oracle mode: use external price for eligibility, sell through AMM
             self.liquidation_engine
@@ -317,7 +330,7 @@ impl Scenario {
             Vec::new()
         };
 
-        let liq_count = (liq_results.len() + zombie_liq_results.len()) as u32;
+        let liq_count = (graduated_results.len() + liq_results.len() + zombie_liq_results.len()) as u32;
 
         // Record liquidations for cascade breaker
         self.breakers.record_liquidations(block, liq_count);
@@ -367,6 +380,7 @@ impl Scenario {
             arber_zec_total: self.arbers.iter().map(|a| a.zec_balance).sum::<f64>(),
             cumulative_fees_zai: self.amm.cumulative_fees_zai,
             cumulative_il_pct: self.amm.impermanent_loss(self.config.initial_redemption_price),
+            graduated_liquidation_count: graduated_results.len() as u32,
         };
 
         // Compute zombie vault metrics
@@ -441,6 +455,7 @@ impl Scenario {
             "arber_zec_total",
             "cumulative_fees_zai",
             "cumulative_il_pct",
+            "graduated_liquidations",
         ])?;
 
         for m in &self.metrics {
@@ -470,6 +485,7 @@ impl Scenario {
                 format!("{:.2}", m.arber_zec_total),
                 format!("{:.2}", m.cumulative_fees_zai),
                 format!("{:.6}", m.cumulative_il_pct),
+                m.graduated_liquidation_count.to_string(),
             ])?;
         }
         wtr.flush()?;

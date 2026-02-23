@@ -822,3 +822,36 @@ Systematic sweep of fee rates and liquidation penalty sharing to test whether an
 | flash_crash | $1,695 | -$202,022 | 0.8% |
 
 Fee income covers less than 1.5% of crash losses in the best configuration tested.
+
+---
+
+## 2026-02-23 — Graduated (Partial) Liquidation Analysis
+
+### F-035: Graduated Liquidation Is Either Inert ($5M) or Counterproductive ($500K)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | PARAM-FAIL |
+| **Scenario** | 16-run comparison: 4 scenarios (black_thursday, sustained_bear, bank_run, recovery) × 2 modes (standard, graduated) × 2 AMM depths ($5M, $500K). Config: 200% CR, 150% graduated floor, 10% collateral seizure per block, Tick controller, 240-block TWAP, 25 vaults at 210-280% CR. |
+| **Finding** | At $5M AMM: graduated liquidation has zero activations across all 4 scenarios — completely inert. At $500K AMM: graduated activates heavily (1,100 total events) but makes every metric worse. Black Thursday bad debt increases 31% ($14,842 → $19,466). Zombie counts increase from 10 → 25 in 3/4 scenarios. Zombie duration increases by 115-675 blocks. The only positive: mean peg deviation improves 6-9pp in sustained_bear and bank_run at $500K, but at the cost of higher max peg deviation and more liquidation activity. |
+| **Root cause** | Two distinct failure modes: (1) **At $5M**, TWAP inertia keeps vault CRs above min_ratio (200%) by TWAP even during 70% external price crashes. Vaults never enter the graduated zone (TWAP CR 150-200%) because the AMM absorbs arber pressure too slowly. This is the same root cause as F-006 (zero liquidations at $5M) and F-023 (zombie detector inert). (2) **At $500K**, graduated liquidation creates a "slow bleed" effect: partial seizure leaves smaller vault remnants that are still in the warning zone, triggering repeated graduated liquidations across many blocks. Each partial sell depresses AMM price slightly, creating sustained downward pressure instead of a single large impact. The remnant vaults remain zombies longer because they now have less collateral but proportionally less debt, keeping their TWAP CR in the warning zone. In Black Thursday, this sustained selling generates $4,624 more bad debt than a single full liquidation. |
+| **Implication** | Graduated liquidation is a lose-lose in oracle-free design. At production AMM depth ($5M), it never activates due to TWAP inertia. At lower depths where it could activate, it worsens outcomes by creating prolonged selling pressure and leaving zombie remnants. The binary liquidation approach is correct for TWAP-based systems: the TWAP's natural inertia already provides "graduation" by delaying liquidation eligibility, making an explicit graduated mechanism redundant at best and harmful at worst. This confirms that the all-or-nothing liquidation design is not a limitation but the correct choice for oracle-free CDPs. |
+| **Strength/Weakness** | **Strength (confirmed)** — Binary liquidation is the correct design. TWAP inertia provides natural graduation, making explicit partial liquidation either inert or counterproductive. |
+
+#### Results by AMM Depth
+
+| Depth | Scenario | Std Liqs | Grad Liqs | Std BadDebt | Grad BadDebt | Std Zombies | Grad Zombies | Std ZDur | Grad ZDur |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| $5M | black_thursday | 0 | 0 | $0 | $0 | 25 | 25 | 741b | 741b |
+| $5M | sustained_bear | 0 | 0 | $0 | $0 | 25 | 25 | 931b | 931b |
+| $5M | bank_run | 0 | 0 | $0 | $0 | 25 | 25 | 543b | 543b |
+| $5M | recovery | 0 | 0 | $0 | $0 | 25 | 25 | 903b | 903b |
+| $500K | black_thursday | 25 | 117 | $14,842 | $19,466 | 25 | 25 | 153b | 167b |
+| $500K | sustained_bear | 25 | 398 | $0 | $0 | 10 | 25 | 256b | 931b |
+| $500K | bank_run | 25 | 270 | $0 | $0 | 10 | 25 | 283b | 543b |
+| $500K | recovery | 25 | 365 | $0 | $613 | 10 | 25 | 278b | 393b |
+
+#### Key Insight: TWAP Already Provides Natural Graduation
+
+The TWAP oracle inherently "graduates" liquidation by delaying price recognition. A 50% external crash takes ~240 blocks (~5 hours) to fully propagate through a 240-block TWAP window. This built-in delay serves the same purpose as graduated liquidation — giving the market time to recover before liquidation triggers. Adding explicit graduation on top of TWAP graduation is redundant and introduces the "slow bleed" pathology at low liquidity.
