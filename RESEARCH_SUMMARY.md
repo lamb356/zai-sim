@@ -336,6 +336,7 @@ The oracle-free CDP flatcoin design is **viable but conditional**. The condition
 
 - Transaction fees: Zcash shielded tx costs ($0.01-$0.50) have zero impact on peg maintenance (F-026)
 - Arber quality at $5M: arber is 0.2% of pool, degrading it improves performance (F-020)
+- AMM swap fee level during crashes: 0.1%-5% fee range has <2% effect on crash peg deviation. Higher fees linearly degrade steady-state peg (0.35%→2.80%) without helping crash resilience. Default 0.3% is near-optimal (F-038)
 
 ### The Bottom Line
 
@@ -343,4 +344,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 36 findings across 225 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 38 findings across 226 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*

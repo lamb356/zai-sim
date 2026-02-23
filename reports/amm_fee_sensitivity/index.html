@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZAI Simulation — Master Summary</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;color:#333}
+header{background:#1a1a2e;color:#fff;padding:24px 32px}
+header h1{font-size:1.4em;font-weight:500}
+.summary-line{margin-top:8px;font-size:1em;opacity:0.9}
+main{max-width:1200px;margin:0 auto;padding:24px}
+section{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:0.9em}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #e0e0e0}
+th{background:#f8f9fa;font-weight:600}
+a{color:#4285f4;text-decoration:none}
+a:hover{text-decoration:underline}
+.badge{padding:3px 10px;border-radius:3px;font-weight:700;font-size:0.8em}
+.badge.pass{background:#34a853;color:#fff}
+.badge.soft-fail{background:#ea8c00;color:#fff}
+.badge.hard-fail{background:#ea4335;color:#fff}
+footer{text-align:center;padding:16px;color:#999;font-size:0.8em}
+</style>
+</head>
+<body>
+<header>
+ <h1>ZAI Simulation — Master Summary</h1>
+ <div class="summary-line">24 / 24 scenarios passed</div>
+</header>
+<main>
+<section>
+<table>
+<tr>
+ <th>Scenario</th><th>Verdict</th><th>Mean Peg Dev</th>
+ <th>Bad Debt</th><th>Liquidations</th><th>Halt Blocks</th><th>Final Price</th>
+</tr>
+<tr><td><a href="fee_0.1pct_steady_state.html">fee_0.1pct_steady_state</a></td><td><span class="badge pass">PASS</span></td><td>0.35%</td><td>0.00</td><td>0</td><td>0</td><td>49.77</td></tr>
+<tr><td><a href="fee_0.1pct_black_thursday.html">fee_0.1pct_black_thursday</a></td><td><span class="badge pass">PASS</span></td><td>7.51%</td><td>0.00</td><td>0</td><td>0</td><td>43.52</td></tr>
+<tr><td><a href="fee_0.1pct_sustained_bear.html">fee_0.1pct_sustained_bear</a></td><td><span class="badge pass">PASS</span></td><td>10.03%</td><td>0.00</td><td>0</td><td>0</td><td>43.52</td></tr>
+<tr><td><a href="fee_0.1pct_flash_crash.html">fee_0.1pct_flash_crash</a></td><td><span class="badge pass">PASS</span></td><td>2.34%</td><td>0.00</td><td>0</td><td>0</td><td>47.76</td></tr>
+<tr><td><a href="fee_0.3pct_steady_state.html">fee_0.3pct_steady_state</a></td><td><span class="badge pass">PASS</span></td><td>0.35%</td><td>0.00</td><td>0</td><td>0</td><td>49.77</td></tr>
+<tr><td><a href="fee_0.3pct_black_thursday.html">fee_0.3pct_black_thursday</a></td><td><span class="badge pass">PASS</span></td><td>7.50%</td><td>0.00</td><td>0</td><td>0</td><td>43.53</td></tr>
+<tr><td><a href="fee_0.3pct_sustained_bear.html">fee_0.3pct_sustained_bear</a></td><td><span class="badge pass">PASS</span></td><td>10.05%</td><td>0.00</td><td>0</td><td>0</td><td>43.53</td></tr>
+<tr><td><a href="fee_0.3pct_flash_crash.html">fee_0.3pct_flash_crash</a></td><td><span class="badge pass">PASS</span></td><td>2.34%</td><td>0.00</td><td>0</td><td>0</td><td>47.78</td></tr>
+<tr><td><a href="fee_0.5pct_steady_state.html">fee_0.5pct_steady_state</a></td><td><span class="badge pass">PASS</span></td><td>0.46%</td><td>0.00</td><td>0</td><td>0</td><td>49.75</td></tr>
+<tr><td><a href="fee_0.5pct_black_thursday.html">fee_0.5pct_black_thursday</a></td><td><span class="badge pass">PASS</span></td><td>7.55%</td><td>0.00</td><td>0</td><td>0</td><td>43.54</td></tr>
+<tr><td><a href="fee_0.5pct_sustained_bear.html">fee_0.5pct_sustained_bear</a></td><td><span class="badge pass">PASS</span></td><td>10.01%</td><td>0.00</td><td>0</td><td>0</td><td>43.54</td></tr>
+<tr><td><a href="fee_0.5pct_flash_crash.html">fee_0.5pct_flash_crash</a></td><td><span class="badge pass">PASS</span></td><td>2.47%</td><td>0.00</td><td>0</td><td>0</td><td>47.75</td></tr>
+<tr><td><a href="fee_1.0pct_steady_state.html">fee_1.0pct_steady_state</a></td><td><span class="badge pass">PASS</span></td><td>0.88%</td><td>0.00</td><td>0</td><td>0</td><td>49.27</td></tr>
+<tr><td><a href="fee_1.0pct_black_thursday.html">fee_1.0pct_black_thursday</a></td><td><span class="badge pass">PASS</span></td><td>7.59%</td><td>0.00</td><td>0</td><td>0</td><td>43.55</td></tr>
+<tr><td><a href="fee_1.0pct_sustained_bear.html">fee_1.0pct_sustained_bear</a></td><td><span class="badge pass">PASS</span></td><td>10.01%</td><td>0.00</td><td>0</td><td>0</td><td>43.56</td></tr>
+<tr><td><a href="fee_1.0pct_flash_crash.html">fee_1.0pct_flash_crash</a></td><td><span class="badge pass">PASS</span></td><td>2.88%</td><td>0.00</td><td>0</td><td>0</td><td>47.52</td></tr>
+<tr><td><a href="fee_2.0pct_steady_state.html">fee_2.0pct_steady_state</a></td><td><span class="badge pass">PASS</span></td><td>1.65%</td><td>0.00</td><td>0</td><td>0</td><td>48.47</td></tr>
+<tr><td><a href="fee_2.0pct_black_thursday.html">fee_2.0pct_black_thursday</a></td><td><span class="badge pass">PASS</span></td><td>7.53%</td><td>0.00</td><td>0</td><td>0</td><td>43.59</td></tr>
+<tr><td><a href="fee_2.0pct_sustained_bear.html">fee_2.0pct_sustained_bear</a></td><td><span class="badge pass">PASS</span></td><td>9.82%</td><td>0.00</td><td>0</td><td>0</td><td>43.59</td></tr>
+<tr><td><a href="fee_2.0pct_flash_crash.html">fee_2.0pct_flash_crash</a></td><td><span class="badge pass">PASS</span></td><td>3.44%</td><td>0.00</td><td>0</td><td>0</td><td>47.02</td></tr>
+<tr><td><a href="fee_5.0pct_steady_state.html">fee_5.0pct_steady_state</a></td><td><span class="badge pass">PASS</span></td><td>2.80%</td><td>0.00</td><td>0</td><td>0</td><td>48.98</td></tr>
+<tr><td><a href="fee_5.0pct_black_thursday.html">fee_5.0pct_black_thursday</a></td><td><span class="badge pass">PASS</span></td><td>7.34%</td><td>0.00</td><td>0</td><td>0</td><td>43.70</td></tr>
+<tr><td><a href="fee_5.0pct_sustained_bear.html">fee_5.0pct_sustained_bear</a></td><td><span class="badge pass">PASS</span></td><td>9.15%</td><td>0.00</td><td>0</td><td>0</td><td>43.69</td></tr>
+<tr><td><a href="fee_5.0pct_flash_crash.html">fee_5.0pct_flash_crash</a></td><td><span class="badge pass">PASS</span></td><td>4.78%</td><td>0.00</td><td>0</td><td>0</td><td>45.63</td></tr>
+
+</table>
+</section>
+<section>
+<h3>Data Export</h3>
+<button onclick="downloadAll()" style="padding:8px 20px;background:#4285f4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.9em">Download All (CSV)</button>
+</section>
+<script>
+const SCENARIOS=[{name:"fee_0.1pct_steady_state",verdict:"PASS",mean_dev:0.350985,max_dev:0.504181,bad_debt:0.00,liqs:0,halts:0,price:49.7735},{name:"fee_0.1pct_black_thursday",verdict:"PASS",mean_dev:7.514039,max_dev:12.954060,bad_debt:0.00,liqs:0,halts:0,price:43.5230},{name:"fee_0.1pct_sustained_bear",verdict:"PASS",mean_dev:10.032743,max_dev:12.951482,bad_debt:0.00,liqs:0,halts:0,price:43.5243},{name:"fee_0.1pct_flash_crash",verdict:"PASS",mean_dev:2.340943,max_dev:6.658627,bad_debt:0.00,liqs:0,halts:0,price:47.7573},{name:"fee_0.3pct_steady_state",verdict:"PASS",mean_dev:0.351095,max_dev:0.504351,bad_debt:0.00,liqs:0,halts:0,price:49.7735},{name:"fee_0.3pct_black_thursday",verdict:"PASS",mean_dev:7.504248,max_dev:12.939318,bad_debt:0.00,liqs:0,halts:0,price:43.5303},{name:"fee_0.3pct_sustained_bear",verdict:"PASS",mean_dev:10.045141,max_dev:12.935187,bad_debt:0.00,liqs:0,halts:0,price:43.5324},{name:"fee_0.3pct_flash_crash",verdict:"PASS",mean_dev:2.344115,max_dev:6.648990,bad_debt:0.00,liqs:0,halts:0,price:47.7836},{name:"fee_0.5pct_steady_state",verdict:"PASS",mean_dev:0.458663,max_dev:0.699469,bad_debt:0.00,liqs:0,halts:0,price:49.7500},{name:"fee_0.5pct_black_thursday",verdict:"PASS",mean_dev:7.545511,max_dev:12.924581,bad_debt:0.00,liqs:0,halts:0,price:43.5377},{name:"fee_0.5pct_sustained_bear",verdict:"PASS",mean_dev:10.008737,max_dev:12.917235,bad_debt:0.00,liqs:0,halts:0,price:43.5414},{name:"fee_0.5pct_flash_crash",verdict:"PASS",mean_dev:2.474617,max_dev:6.888571,bad_debt:0.00,liqs:0,halts:0,price:47.7520},{name:"fee_1.0pct_steady_state",verdict:"PASS",mean_dev:0.884085,max_dev:1.463150,bad_debt:0.00,liqs:0,halts:0,price:49.2684},{name:"fee_1.0pct_black_thursday",verdict:"PASS",mean_dev:7.593274,max_dev:12.890551,bad_debt:0.00,liqs:0,halts:0,price:43.5547},{name:"fee_1.0pct_sustained_bear",verdict:"PASS",mean_dev:10.005083,max_dev:12.883586,bad_debt:0.00,liqs:0,halts:0,price:43.5582},{name:"fee_1.0pct_flash_crash",verdict:"PASS",mean_dev:2.875565,max_dev:7.442396,bad_debt:0.00,liqs:0,halts:0,price:47.5194},{name:"fee_2.0pct_steady_state",verdict:"PASS",mean_dev:1.649866,max_dev:3.062678,bad_debt:0.00,liqs:0,halts:0,price:48.4687},{name:"fee_2.0pct_black_thursday",verdict:"PASS",mean_dev:7.527533,max_dev:12.819879,bad_debt:0.00,liqs:0,halts:0,price:43.5901},{name:"fee_2.0pct_sustained_bear",verdict:"PASS",mean_dev:9.817629,max_dev:12.820892,bad_debt:0.00,liqs:0,halts:0,price:43.5896},{name:"fee_2.0pct_flash_crash",verdict:"PASS",mean_dev:3.442275,max_dev:8.068970,bad_debt:0.00,liqs:0,halts:0,price:47.0219},{name:"fee_5.0pct_steady_state",verdict:"PASS",mean_dev:2.803979,max_dev:5.194995,bad_debt:0.00,liqs:0,halts:0,price:48.9834},{name:"fee_5.0pct_black_thursday",verdict:"PASS",mean_dev:7.342183,max_dev:12.609311,bad_debt:0.00,liqs:0,halts:0,price:43.6953},{name:"fee_5.0pct_sustained_bear",verdict:"PASS",mean_dev:9.151940,max_dev:12.610360,bad_debt:0.00,liqs:0,halts:0,price:43.6948},{name:"fee_5.0pct_flash_crash",verdict:"PASS",mean_dev:4.784338,max_dev:9.160387,bad_debt:0.00,liqs:0,halts:0,price:45.6348}];
+function downloadAll(){
+ let csv='scenario,verdict,mean_peg_deviation,max_peg_deviation,total_bad_debt,total_liquidations,halt_blocks,final_amm_price\n';
+ for(const s of SCENARIOS){
+  csv+=s.name+','+s.verdict+','+s.mean_dev+','+s.max_dev+','+s.bad_debt+','+s.liqs+','+s.halts+','+s.price+'\n';
+ }
+ const blob=new Blob([csv],{type:'text/csv'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;a.download='zai_all_scenarios.csv';a.click();
+ URL.revokeObjectURL(url);
+}
+</script>
+</main>
+<footer>Generated by zai-sim</footer>
+</body>
+</html>

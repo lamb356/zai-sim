@@ -929,3 +929,34 @@ Counter-intuitively, competition among arbitrageurs degrades price discovery in 
 #### Key Insight: AMM Depth Is the Stability Parameter, Not TWAP Window
 
 The TWAP window is a second-order parameter. At sufficient depth ($5M), it has no effect whatsoever — even a 15-minute window passes all crash scenarios. At insufficient depth ($500K), the relationship between window and stability is non-monotonic, meaning "longer = safer" is false. The only first-order parameter is AMM liquidity: deploy at $5M+ and the TWAP window becomes irrelevant. Deploy at $500K and no TWAP tuning can guarantee safety.
+
+---
+
+## 2026-02-23 — AMM Fee Sensitivity Analysis
+
+### F-038: AMM Swap Fee Sensitivity — Fees Degrade Steady-State Peg Without Helping During Crashes
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | PARAM-SENSITIVITY |
+| **Scenario** | 24-run sweep: 6 fee levels (0.1%, 0.3%, 0.5%, 1%, 2%, 5%) × 4 scenarios (steady_state, black_thursday, sustained_bear, flash_crash). Config: $5M AMM, 200% CR, 240-block TWAP, Tick controller. |
+| **Finding** | All 24 runs PASS with zero bad debt and zero liquidations. Arbers never exhaust at any fee level (at $5M depth). The critical asymmetry: **steady-state peg deviation scales linearly with fee** (0.35% at 0.1% fee → 2.80% at 5% fee, an 8x degradation), while **crash peg deviation is essentially fee-invariant** (black_thursday: 7.51% at 0.1% → 7.34% at 5%, a negligible 2% improvement). Flash crash shows moderate sensitivity (2.34% → 4.78%), while sustained_bear slightly improves (10.03% → 9.15%). Fees generated scale ~110x from $178 (0.1%, steady) to $26,017 (5%, flash_crash), but even at 5% the fee income ($19K-$26K) is economically negligible vs $5M pool — confirming F-034's finding that fees cannot compensate for price exposure. |
+| **Root cause** | During crashes, arber profitability is dominated by the external-AMM price gap (often 30-60%), dwarfing even a 5% fee. The arber trades the same volume regardless of fee because the profit margin is massive. In steady state, the arber's profit margin is thin — a higher fee pushes the arber's break-even point further from peg, meaning the AMM price must deviate more before arbitrage becomes profitable. This creates a wider "dead zone" around peg where no arber activity occurs, causing higher steady-state deviation. |
+| **Implication** | The default 0.3% fee is near-optimal. Lower fees (0.1%) provide negligible improvement. Higher fees linearly degrade steady-state performance without meaningfully improving crash resilience. At $5M depth, the fee is a second-order parameter — arbers never exhaust regardless of fee level, so the F-028 hypothesis (higher fees extend exhaustion) does not apply. Fee income is economically irrelevant at all levels tested, reconfirming that protocol-owned liquidity is the only viable LP strategy. |
+| **Strength/Weakness** | **Strength (confirmed)** — The 0.3% default is robust. The system is insensitive to fee level during crashes, meaning fee misconfiguration cannot cause bad debt at adequate AMM depth. |
+
+#### Fee Impact on Steady-State Peg (Key Finding)
+
+| Fee | Steady-State Mean Peg | Flash Crash Mean Peg | Black Thursday Mean Peg | Sustained Bear Mean Peg |
+|:---:|:---:|:---:|:---:|:---:|
+| 0.1% | 0.35% | 2.34% | 7.51% | 10.03% |
+| 0.3% (default) | 0.35% | 2.34% | 7.50% | 10.05% |
+| 0.5% | 0.46% | 2.47% | 7.55% | 10.01% |
+| 1.0% | 0.88% | 2.88% | 7.59% | 10.01% |
+| 2.0% | 1.65% | 3.44% | 7.53% | 9.82% |
+| 5.0% | 2.80% | 4.78% | 7.34% | 9.15% |
+
+#### Key Insight: Fee Is a Steady-State Tax, Not a Crash Defense
+
+Higher fees create a wider arber "dead zone" where small deviations are not profitable to arbitrage. During crashes, the price gap is so large that even a 5% fee is irrelevant — arbers trade the same volume at the same speed. The F-028 hypothesis (higher fees → slower repricing → better crash defense) does not hold at $5M because arbers never exhaust regardless of fee. Fee level is a third-order parameter: AMM depth dominates (F-037), TWAP window is secondary (F-037), and fee is negligible for crash outcomes.
