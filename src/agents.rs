@@ -57,6 +57,11 @@ pub struct ArbitrageurConfig {
     /// Minimum expected profit (in ZAI) to execute a trade.
     /// Represents tx fee floor — arber skips trades below this threshold.
     pub min_arb_profit: f64,
+    /// Per-arber activity rate (0.0–1.0). Default 1.0 = always active.
+    /// When < 1.0, overrides the global arber_activity_rate in ScenarioConfig.
+    pub activity_rate: f64,
+    /// Fraction of balance to trade per opportunity. Default 0.1 (10%).
+    pub max_trade_pct: f64,
 }
 
 impl Default for ArbitrageurConfig {
@@ -69,6 +74,8 @@ impl Default for ArbitrageurConfig {
             arb_latency_sell_blocks: 10,
             capital_replenish_rate: 0.0,
             min_arb_profit: 0.0,
+            activity_rate: 1.0,
+            max_trade_pct: 0.1,
         }
     }
 }
@@ -171,7 +178,7 @@ impl Arbitrageur {
         if deviation_pct > self.config.arb_threshold_pct {
             // AMM price too high → sell ZEC on AMM (get ZAI) → buy ZEC cheaper externally
             // This pushes AMM price down
-            let trade_size = self.zec_balance * 0.1; // trade 10% of balance
+            let trade_size = self.zec_balance * self.config.max_trade_pct;
             if trade_size > 0.01 {
                 // Profitability check: expected profit must exceed tx fee floor
                 let expected_zai = amm.quote_zec_for_zai(trade_size);
@@ -206,7 +213,7 @@ impl Arbitrageur {
         } else if deviation_pct < -self.config.arb_threshold_pct {
             // AMM price too low → buy ZEC on AMM (sell ZAI) → sell ZEC externally
             // This pushes AMM price up
-            let trade_value = self.zai_balance * 0.1;
+            let trade_value = self.zai_balance * self.config.max_trade_pct;
             if trade_value > 0.01 {
                 // Profitability check: expected profit must exceed tx fee floor
                 let expected_zec = amm.quote_zai_for_zec(trade_value);

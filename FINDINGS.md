@@ -855,3 +855,34 @@ Fee income covers less than 1.5% of crash losses in the best configuration teste
 #### Key Insight: TWAP Already Provides Natural Graduation
 
 The TWAP oracle inherently "graduates" liquidation by delaying price recognition. A 50% external crash takes ~240 blocks (~5 hours) to fully propagate through a 240-block TWAP window. This built-in delay serves the same purpose as graduated liquidation — giving the market time to recover before liquidation triggers. Adding explicit graduation on top of TWAP graduation is redundant and introduces the "slow bleed" pathology at low liquidity.
+
+---
+
+### F-036: Multi-Arber Competition Worsens Peg Stability — More Is Not Better
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | AGENT-DYNAMICS |
+| **Scenario** | 8-run comparison: 2 scenarios (black_thursday, sustained_bear) × 4 arber configs (solo=1 whale, trio=3, squad=5, swarm=10). Config: $5M AMM, 200% CR, Tick controller, 240-block TWAP, 25 vaults at 210-280% CR. Whale: $500K ZAI + 10K ZEC, 20% trade size, 100% activity. Medium: $100K ZAI + 2K ZEC, 10% trade size, 80% activity. Small: $20K ZAI + 400 ZEC, 5% trade size, 50% activity. |
+| **Finding** | Adding more arbitrageurs consistently worsens peg stability. In Black Thursday, mean peg deviation increases monotonically: solo 18.6% → trio 20.9% → squad 22.0% → swarm 23.1%. In Sustained Bear, the pattern is more severe: solo 21.6% → swarm 27.1% (+5.5pp). Max peg deviation also worsens: solo 27.1% → swarm 37.4% in Black Thursday. More arbers also burn significantly more capital: swarm consumes $118K-$213K vs solo's $49K-$74K. Total liquidations increase from 20 to 25 with any multi-arber config. Zero bad debt and no death spirals across all configs at $5M depth. |
+| **Root cause** | Multiple arbers compete to trade against the same AMM deviation, but each trade pushes the price further. The whale trades first (100% activity), then medium arbers (80%) push price past fair value, and small arbers (50%) trade against the overshoot. This creates price oscillation that increases mean deviation rather than reducing it. Each arber burns capital on round-trip friction, and the aggregate effect is more AMM churn without better price discovery. The solo arber is more capital-efficient because it captures the full deviation without competition — its 10% trade size naturally limits impact, and there are no other arbers creating overshoot/undershoot cycles. |
+| **Implication** | For oracle-free AMM design, a single well-capitalized arbitrageur produces better stability than fragmented competition. This reinforces F-028's finding that arber exhaustion is protective: with multiple arbers, aggregate capital exhausts faster while producing worse price tracking. In a real deployment, this suggests the protocol should NOT incentivize multiple arbers — a single dominant arber with adequate capital is the optimal configuration. Market structure that concentrates arb capital (e.g., one MEV-capable bot) outperforms fragmented retail arbitrage for peg stability. |
+| **Strength/Weakness** | **Weakness (nuanced)** — Single-arber dependency is a concentration risk, but multi-arber competition demonstrably worsens outcomes. The design naturally favors monopolistic arbitrage. |
+
+#### Results by Scenario
+
+| Scenario | Config | # Arbers | Verdict | Mean Peg | Max Peg | Liqs | Bad Debt | Capital Burned |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| black_thursday | solo | 1 | SOFT FAIL | 18.64% | 27.11% | 20 | $0 | $49,267 |
+| black_thursday | trio | 3 | SOFT FAIL | 20.93% | 31.04% | 25 | $0 | $64,234 |
+| black_thursday | squad | 5 | SOFT FAIL | 22.01% | 33.69% | 25 | $0 | $83,235 |
+| black_thursday | swarm | 10 | SOFT FAIL | 23.05% | 37.38% | 25 | $0 | $118,307 |
+| sustained_bear | solo | 1 | SOFT FAIL | 21.56% | 26.85% | 20 | $0 | $74,328 |
+| sustained_bear | trio | 3 | HARD FAIL | 23.67% | 30.89% | 25 | $0 | $110,220 |
+| sustained_bear | squad | 5 | SOFT FAIL | 25.16% | 33.57% | 25 | $0 | $151,442 |
+| sustained_bear | swarm | 10 | SOFT FAIL | 27.11% | 37.22% | 25 | $0 | $213,202 |
+
+#### Key Insight: Monopolistic Arbitrage Is Optimal for AMM Stability
+
+Counter-intuitively, competition among arbitrageurs degrades price discovery in constant-product AMMs. Each arber's trade shifts the price curve, creating overshoot that other arbers then trade against. The result is a positive feedback loop of round-trip friction that drains capital without improving the peg. A single arber trading 10-20% of its balance per opportunity provides smoother, more capital-efficient repricing than multiple competing arbers with fragmented capital.

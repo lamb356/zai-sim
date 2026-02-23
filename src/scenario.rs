@@ -206,10 +206,15 @@ impl Scenario {
 
         // (2) Arbitrageurs trade
         if !halted {
-            let activity_rate = self.config.arber_activity_rate;
+            let global_rate = self.config.arber_activity_rate;
             for arber in &mut self.arbers {
-                // Stochastic: skip with probability (1 - activity_rate)
-                if stochastic && self.rng.gen::<f64>() >= activity_rate {
+                // Use per-arber activity_rate if set below 1.0, else global fallback
+                let rate = if arber.config.activity_rate < 1.0 {
+                    arber.config.activity_rate
+                } else {
+                    global_rate
+                };
+                if stochastic && self.rng.gen::<f64>() >= rate {
                     continue;
                 }
                 arber.act(&mut self.amm, external_price, block);

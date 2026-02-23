@@ -6,7 +6,7 @@
 
 ## 1. Abstract
 
-We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 35 findings from 217 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
+We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 36 findings from 225 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
 
 ---
 
@@ -342,4 +342,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 35 findings across 217 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 36 findings across 225 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
