@@ -47,6 +47,21 @@ fn historical_replay_suite() {
             csv_path: "data/rally_2024_hourly.csv",
             expected_start_price: 37.0,
         },
+        HistoricalScenario {
+            name: "may_2021_crash",
+            csv_path: "data/may_2021_crash_hourly.csv",
+            expected_start_price: 307.0,
+        },
+        HistoricalScenario {
+            name: "luna_ust_2022",
+            csv_path: "data/luna_ust_2022_hourly.csv",
+            expected_start_price: 138.0,
+        },
+        HistoricalScenario {
+            name: "covid_initial_2020",
+            csv_path: "data/covid_initial_2020_hourly.csv",
+            expected_start_price: 62.0,
+        },
     ];
 
     let report_dir = PathBuf::from("reports/historical_replay");

@@ -289,7 +289,7 @@ The simulator cannot answer the following questions, which require real-world da
 
 ### Validation Gaps
 
-7. **Real price data.** Binance API was geo-restricted during testing. Historical proxy paths are calibrated to real ZEC volatility but are synthetic. Validation against actual 75-second ZEC/USDT klines from 2020-2024 crash periods would strengthen confidence.
+7. **Real price data (largely addressed).** F-032 now validates against 6 real ZEC/USD hourly price series from CryptoCompare (Black Thursday 2020, COVID Initial 2020, May 2021 crash, FTX Collapse 2022, Luna/UST 2022, Rally 2024). All 6 produce zero bad debt. Remaining gap: hourly data is coarser than the 75-second block time — validation against tick-level data would further strengthen confidence.
 
 8. **Multi-week dynamics (addressed).** F-024 extended sustained bear to 43 days (50K blocks): SOFT FAILs at 11.8% mean peg due to arber capital exhaustion. F-028 proved that arber capital replenishment makes this WORSE (34.8% at 1000 ZAI/blk). The 11.8% baseline is actually the best achievable result — arber exhaustion is the stability mechanism. Multi-month scenarios remain untested but adding capital won't help.
 
@@ -321,6 +321,7 @@ The oracle-free CDP flatcoin design is **viable but conditional**. The condition
 - Protocol-owned liquidity at 25-50% provides viable LP retention floor during crises (F-027B)
 - System self-heals during V-shaped recoveries — zombie vaults fully resolve when price returns (F-029)
 - Death spiral defense holds at all tested liquidity levels up to $50M — structurally robust, not fragile (F-031)
+- Zero bad debt across 6 real ZEC market events spanning 2020-2024 — crashes (22-51%), rallies (67%), and contagion events all survived (F-032)
 
 ### What Doesn't Work
 
