@@ -67,6 +67,10 @@ pub struct ScenarioConfig {
     pub zombie_gap_threshold: f64,
     // LP incentive mechanisms
     pub stability_fee_to_lps: bool,
+    // Oracle-based liquidation: use external_price for liquidation eligibility
+    // instead of AMM TWAP. Demonstrates death spiral when combined with
+    // use_amm_liquidation=true (collateral sold through AMM).
+    pub use_external_oracle_for_liquidation: bool,
 }
 
 impl Default for ScenarioConfig {
@@ -91,6 +95,7 @@ impl Default for ScenarioConfig {
             zombie_detector: false,
             zombie_gap_threshold: 0.5,
             stability_fee_to_lps: false,
+            use_external_oracle_for_liquidation: false,
         }
     }
 }
@@ -288,7 +293,11 @@ impl Scenario {
         self.amm.record_price(block);
 
         // (6 & 7) Liquidation engine scans and executes
-        let liq_results = if self.config.use_amm_liquidation {
+        let liq_results = if self.config.use_external_oracle_for_liquidation {
+            // Oracle mode: use external price for eligibility, sell through AMM
+            self.liquidation_engine
+                .oracle_liquidate(&mut self.registry, &mut self.amm, block, external_price)
+        } else if self.config.use_amm_liquidation {
             self.liquidation_engine
                 .cascading_spot_liquidate(&mut self.registry, &mut self.amm, block)
         } else {

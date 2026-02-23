@@ -4,6 +4,7 @@ pub mod cdp;
 pub mod circuit_breaker;
 pub mod controller;
 pub mod data_fetcher;
+pub mod historical;
 pub mod liquidation;
 pub mod output;
 pub mod report;

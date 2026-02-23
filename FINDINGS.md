@@ -748,3 +748,39 @@ After research validation is complete, the simulator will be compiled to WebAsse
 | **Warning** | comparison is useless: `usize >= 0` is always true |
 | **Fix** | Removed the assertion |
 | **Why wrong** | `Vec::len()` returns `usize` which is unsigned — it can never be negative. The assertion was a thoughtless sanity check that tested nothing. |
+
+---
+
+## 2026-02-23 — Historical Replay Validation
+
+Real ZEC hourly price data from CryptoCompare fed through the simulator to validate oracle-free design against actual market events.
+
+### F-032: Historical Replay — Zero Bad Debt Across Three Real Market Events
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | DIVERGENCE |
+| **Scenario** | 3 historical replays: Black Thursday 2020 (145h, ZEC $42→$21, 49% crash), FTX Collapse 2022 (217h, ZEC $53→$34, 36% crash), Rally 2024 (721h, ZEC $37→$62, 67% rally) |
+| **Finding** | All three real-world scenarios produce **zero bad debt** under oracle-free TWAP liquidation (config: 100K ZEC AMM, 200% CR, 240-block TWAP, Tick controller). Black Thursday 2020 triggered only 1 liquidation with $0 bad debt despite a 49% crash. FTX Collapse and Rally triggered 0 liquidations. All three produce SOFT FAIL verdicts due to sustained peg deviation (10-12% mean), which is the expected cost of TWAP smoothing — the AMM price intentionally lags the external price. Breaker triggers are high (5K-28K) because the TWAP divergence breaker fires frequently during sustained price moves, which is correct protective behavior. |
+| **Root cause** | TWAP smoothing delays liquidation eligibility, preventing panic cascades. During a 49% crash (Black Thursday), the TWAP price only gradually follows the external price down, keeping vault collateral ratios above the 200% minimum for longer. By the time TWAP catches up, arbitrageurs have already adjusted AMM price and the system has absorbed the shock. The chronic peg deviation is the cost of this protection. |
+| **Implication** | Oracle-free design survives real catastrophic events (Black Thursday destroyed $6M in MakerDAO bad debt). The tradeoff is chronic peg deviation during sustained moves — acceptable for a system that prioritizes solvency over peg tightness. |
+| **Strength** | **Solvency under real stress** — zero bad debt across 49% crash, 36% crash, and 67% rally using actual ZEC market data, not synthetic scenarios. |
+
+---
+
+## 2026-02-23 — Oracle Comparison: Oracle-Free vs Oracle-Based Liquidation
+
+Side-by-side comparison proving the core thesis: same collateral, same crash, different oracle mechanism → different outcome.
+
+### F-033: Oracle-Based Liquidation Triggers Premature Mass Liquidation and Worse Outcomes
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | DIVERGENCE |
+| **Scenario** | 5 stress scenarios (black_thursday, sustained_bear, flash_crash, bank_run, demand_shock) run in BOTH oracle-free (TWAP) and oracle-based (external price) modes. Config: $5M AMM, 200% CR, 240-block TWAP, Tick controller, 25 vaults at 210-280% CR (~8500 ZEC collateral, ~$195K debt), velocity limit raised to 50/block. |
+| **Finding** | Oracle-free wins 5/5 scenarios. Key results: (1) **Flash crash**: Oracle-free liquidates 0 vaults, oracle-based liquidates all 25 — unnecessary mass liquidation since the price recovered. Oracle-based peg deviation 3.5x worse (8.12% vs 2.34%). (2) **Bank run**: Oracle-free gets SOFT FAIL, oracle-based gets **HARD FAIL** — the only mode difference that flips a verdict. (3) **Black Thursday**: Oracle-based liquidates 25 vaults vs 20 for oracle-free, with 36% worse peg deviation (16.72% vs 12.29%). (4) **Sustained bear**: Oracle-based 18% worse peg deviation (19.99% vs 16.98%). (5) **Demand shock**: Oracle-based unnecessarily liquidates 15 vaults vs 0 for oracle-free. |
+| **Root cause** | Oracle-based liquidation uses the external price directly — during a crash, this price drops immediately and stays low, triggering mass liquidation of all vaults below min_ratio. The seized collateral is dumped on the AMM, depressing the AMM price and worsening peg deviation. In contrast, TWAP-based liquidation smooths out transient drops (flash crash) and delays liquidation eligibility during sustained drops, giving the system time to absorb shocks. The TWAP acts as a built-in circuit breaker against panic cascading. |
+| **Implication** | This is the core thesis proof for oracle-free design. Traditional oracle-based CDP systems (MakerDAO) are vulnerable to exactly this failure mode: a rapid external price drop triggers mass liquidation, collateral flooding the market depresses prices further, and the system enters a death spiral. ZAI's TWAP oracle trades precision (chronic peg deviation) for resilience (no death spirals). The flash crash result is most striking — oracle-based destroys all 25 vaults for a price drop that fully recovers, while oracle-free correctly ignores the transient. |
+| **Strength/Weakness** | **Strength: Death spiral immunity** — Oracle-free design prevents the exact failure mode that caused $6M bad debt on MakerDAO's Black Thursday 2020. Same collateral, same crash, different oracle → fundamentally different outcome. |

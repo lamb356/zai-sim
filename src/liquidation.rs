@@ -30,6 +30,9 @@ pub enum LiquidationMode {
     AmmLiquidation,
     /// Zombie vault detection: TWAP says safe, spot says liquidate
     ZombieDetection,
+    /// Oracle-based liquidation: external price determines eligibility,
+    /// collateral sold through AMM (creates death spiral feedback loop)
+    OracleLiquidation,
 }
 
 #[derive(Debug, Clone)]
@@ -127,6 +130,7 @@ impl LiquidationEngine {
             LiquidationMode::SelfLiquidation
                 | LiquidationMode::AmmLiquidation
                 | LiquidationMode::ZombieDetection
+                | LiquidationMode::OracleLiquidation
         ) && !registry.is_liquidatable(vault_id, amm)
         {
             return Err(format!("Vault {} is not liquidatable", vault_id));
@@ -388,6 +392,47 @@ impl LiquidationEngine {
                 Err(_) => break,
             }
         }
+        results
+    }
+
+    /// Oracle-based liquidation: uses an external price for eligibility checks,
+    /// but sells seized collateral through the AMM.
+    ///
+    /// This creates a death spiral feedback loop:
+    /// 1. External oracle reports low price → vaults become eligible for liquidation
+    /// 2. Seized collateral is dumped on AMM → AMM price drops
+    /// 3. Next block: oracle still reports low price → more vaults eligible
+    /// 4. Repeat until all vaults are liquidated or velocity limit stops it
+    ///
+    /// Unlike `cascading_spot_liquidate`, this does NOT re-scan after each
+    /// liquidation within a single block — the oracle price is fixed per block.
+    /// The cascade happens across blocks as the AMM price deteriorates.
+    pub fn oracle_liquidate(
+        &mut self,
+        registry: &mut VaultRegistry,
+        amm: &mut Amm,
+        block: u64,
+        oracle_price: f64,
+    ) -> Vec<LiquidationResult> {
+        let ids = self.scan_liquidatable_at_price(registry, oracle_price);
+        let mut results = Vec::new();
+
+        for id in ids {
+            let penalty_frac = registry.config.liquidation_penalty;
+            match self.execute_core(
+                id,
+                LiquidationMode::OracleLiquidation,
+                penalty_frac,
+                0.0,
+                registry,
+                amm,
+                block,
+            ) {
+                Ok(result) => results.push(result),
+                Err(_) => break, // velocity limit hit
+            }
+        }
+
         results
     }
 }
