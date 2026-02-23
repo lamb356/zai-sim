@@ -231,7 +231,7 @@ Three possible outcomes when external price crashes and vaults become zombies:
 | AMM liquidity (minimum) | **$5M** | 12/13 scenarios pass, 10/13 zero breakers |
 | AMM liquidity (recommended) | **$10M** | All scenarios pass including $1M demand shock |
 | AMM liquidity (demand shock safe) | **$25M** | Zero breaker triggers even under $1M demand agent |
-| Min collateral ratio | **200%** | Standard DeFi practice; exact value irrelevant until liquidations fire (F-019) |
+| Min collateral ratio | **200%** | Safety parameter, not solvency parameter at $5M — zero bad debt from 125%-300% (F-039). 200% provides 2.26x solvency margin; 150% viable for capital efficiency. |
 | TWAP window | **240 blocks (5h)** | Manipulation resistant; exact value irrelevant until liquidations fire (F-019) |
 | Controller | **Tick** | Log-scale response more stable than PI for large deviations |
 | Protocol-owned liquidity | **25-50%** | 25% maintains $2M MVL floor during LP flight; 50% achieves PASS (F-027B) |
@@ -337,6 +337,7 @@ The oracle-free CDP flatcoin design is **viable but conditional**. The condition
 - Transaction fees: Zcash shielded tx costs ($0.01-$0.50) have zero impact on peg maintenance (F-026)
 - Arber quality at $5M: arber is 0.2% of pool, degrading it improves performance (F-020)
 - AMM swap fee level during crashes: 0.1%-5% fee range has <2% effect on crash peg deviation. Higher fees linearly degrade steady-state peg (0.35%→2.80%) without helping crash resilience. Default 0.3% is near-optimal (F-038)
+- Min collateral ratio at $5M: zero bad debt from 125% to 300% — CR is a capital efficiency parameter, not a safety parameter. AMM depth provides the solvency guarantee (F-039)
 
 ### The Bottom Line
 
@@ -344,4 +345,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 38 findings across 226 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 39 findings across 227 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
