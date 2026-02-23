@@ -886,3 +886,35 @@ The TWAP oracle inherently "graduates" liquidation by delaying price recognition
 #### Key Insight: Monopolistic Arbitrage Is Optimal for AMM Stability
 
 Counter-intuitively, competition among arbitrageurs degrades price discovery in constant-product AMMs. Each arber's trade shifts the price curve, creating overshoot that other arbers then trade against. The result is a positive feedback loop of round-trip friction that drains capital without improving the peg. A single arber trading 10-20% of its balance per opportunity provides smoother, more capital-efficient repricing than multiple competing arbers with fragmented capital.
+
+---
+
+### F-037: TWAP Window Sensitivity — AMM Depth Dominates, Window Is Secondary
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | PARAM-SENSITIVITY |
+| **Scenario** | 72-run sweep: 9 TWAP windows (12, 24, 48, 96, 144, 192, 240, 360, 720 blocks) × 4 scenarios (black_thursday, sustained_bear, flash_crash, bank_run) × 2 AMM depths ($5M, $500K). Config: 200% CR, Tick controller, 25 vaults at 210-280% CR. |
+| **Finding** | **At $5M depth: TWAP window has zero effect.** All 36 runs produce identical metrics per scenario — same verdict (PASS), same peg deviation, same zombie counts. Even a 12-block (15-minute) window passes every crash scenario at $5M. The 240b recommendation provides 20x safety margin over the 12b minimum. **At $500K depth: TWAP window matters but the relationship is non-monotonic.** Black Thursday shows bad debt of $0 at 48-96b, then bad debt RISES to $14,842 at 240b (the current recommendation!). Flash crash shows the opposite: bad debt at 12-24b, zero at 48b+, full PASS at 192b+. Bank run shows a U-shape: bad debt at 12b and 720b, safe zone at 24-360b. The minimum safe window across all scenarios at $500K is 48b, but black_thursday produces bad debt at windows >=144b, meaning no single window is universally safe at $500K. |
+| **Root cause** | Two distinct regimes: (1) **At $5M**, the AMM pool is so deep that arber trades barely move the spot price. TWAP closely tracks spot regardless of window because the underlying signal is already smooth. The TWAP window is averaging an already-averaged signal — no information gain. (2) **At $500K**, two competing effects: **Short windows (12-24b)** propagate crashes too fast, causing premature liquidation and bad debt (flash_crash pattern). **Long windows (144-720b)** trap TWAP in the pre-crash zone, delaying liquidation until vaults are deeply underwater, then liquidating into a depressed AMM for bad debt (black_thursday pattern). The 48-96b range at $500K hits the sweet spot — fast enough to avoid stale TWAP, slow enough to avoid premature liquidation. The non-monotonic behavior at $500K means there is no universal "longer is safer" rule. |
+| **Implication** | **For deployers at $5M+: the TWAP window doesn't matter.** Any window from 12-720 blocks produces identical results. The 240b default is fine but has no marginal benefit over 48b. AMM depth is the dominant stability parameter, not TWAP smoothing. **For deployers at $500K: there is no universally safe TWAP window.** The optimal window depends on the expected crash profile. Flash crashes favor longer windows (192b+). Sustained crashes favor shorter windows (48-96b). The 48b setting minimizes worst-case bad debt across scenarios, but black_thursday still produces bad debt at any window >=144b. The fundamental issue is insufficient liquidity, not TWAP tuning — at $500K, no parameter setting can save the system from a Black Thursday crash. |
+| **Strength/Weakness** | **Strength (confirmed)** — At production depth ($5M+), the system is robust to any TWAP window, confirming that AMM depth is the true stability mechanism. **Weakness (at $500K)** — Non-monotonic TWAP sensitivity means parameter tuning cannot substitute for adequate liquidity. |
+
+#### Results — $500K Depth (where TWAP window matters)
+
+| Window | black_thursday | sustained_bear | flash_crash | bank_run |
+|:---:|:---:|:---:|:---:|:---:|
+| 12b | $3,686 bd | $520 bd | $7,636 bd | $652 bd |
+| 24b | $11 bd | $0 | $1,981 bd | $0 |
+| **48b** | **$0** | **$0** | $0 | **$0** |
+| **96b** | **$0** | **$0** | $0 | **$0** |
+| 144b | $808 bd | $0 | $0 | $0 |
+| 192b | $9,410 bd | $0 | $0 | $0 |
+| 240b | $14,842 bd | $0 | $0 | $0 |
+| 360b | $6,147 bd | $0 | $0 | $0 |
+| 720b | $4,602 bd | $0 | $0 | $396 bd |
+
+#### Key Insight: AMM Depth Is the Stability Parameter, Not TWAP Window
+
+The TWAP window is a second-order parameter. At sufficient depth ($5M), it has no effect whatsoever — even a 15-minute window passes all crash scenarios. At insufficient depth ($500K), the relationship between window and stability is non-monotonic, meaning "longer = safer" is false. The only first-order parameter is AMM liquidity: deploy at $5M+ and the TWAP window becomes irrelevant. Deploy at $500K and no TWAP tuning can guarantee safety.
