@@ -338,6 +338,7 @@ The oracle-free CDP flatcoin design is **viable but conditional**. The condition
 - Arber quality at $5M: arber is 0.2% of pool, degrading it improves performance (F-020)
 - AMM swap fee level during crashes: 0.1%-5% fee range has <2% effect on crash peg deviation. Higher fees linearly degrade steady-state peg (0.35%→2.80%) without helping crash resilience. Default 0.3% is near-optimal (F-038)
 - Min collateral ratio at $5M: zero bad debt from 125% to 300% — CR is a capital efficiency parameter, not a safety parameter. AMM depth provides the solvency guarantee (F-039)
+- Block timing irregularity: regular, bursty, slow, and mixed block timing patterns produce <0.4% difference in peg deviation. Block-count TWAP is safe for Zcash's variable block times — AMM inertia dominates oracle sampling (F-040)
 
 ### The Bottom Line
 
@@ -345,4 +346,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 39 findings across 227 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 40 findings across 228 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*

@@ -997,3 +997,31 @@ This is the fourth parameter sweep confirming the same conclusion: **at $5M AMM 
 
 1. **AMM depth** — determines solvency (F-011, F-015, F-031)
 2. **Everything else** — determines capital efficiency, peg tightness, and user experience, but NOT solvency
+
+### F-040: Block Time Sensitivity — Irregular Block Timing Is Irrelevant to System Safety
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | PARAM-SENSITIVITY |
+| **Scenario** | 8-run sweep: 4 timing patterns (regular 75s, bursty 5s×10+600s gap, slow 150s, mixed 50-block alternating) × 2 scenarios (black_thursday, sustained_bear). Config: $5M AMM, 200% CR, 240-block TWAP, Tick controller. Ground-truth price curve sampled at block arrival times. |
+| **Finding** | **All 8 runs PASS with zero bad debt. Block timing pattern has negligible effect on system behavior.** Mean peg deviation varies by <0.4% across timing patterns (7.24-7.53% for black_thursday, 9.69-10.05% for sustained_bear). Liquidation count, bad debt, and verdict are identical across all patterns. The block-count TWAP diverges from the "true" time-weighted average by 34-45%, but this divergence is identical for regular and irregular timing — it's caused by AMM constant-product inertia, not by the block-count approximation. |
+| **Root cause** | The simulator's TWAP oracle weights each block equally regardless of real-world duration. In theory, bursty blocks (10 blocks in 50s) would over-weight burst periods 15× and slow blocks would under-weight 2×. In practice, the AMM's constant-product formula dominates: the AMM spot price changes slowly regardless of how quickly blocks arrive, so the TWAP sees nearly the same price sequence regardless of timing. The block-count TWAP approximation works because the AMM itself is the bottleneck for price discovery, not the oracle sampling rate. |
+| **Implication** | **Block-count TWAP is safe for Zcash deployment.** There is no need to add timestamp-based TWAP weighting. The 75s target block time assumption embedded in the 240-block TWAP window (~5 hours) is robust to real-world block time variance including extreme bursty mining, slow blocks, and mixed patterns. This eliminates a potential deployment concern about Zcash's variable block times. |
+| **Strength/Weakness** | **Strength (confirmed)** — The block-count TWAP approximation is safe because AMM inertia, not oracle sampling, determines TWAP accuracy. |
+
+#### Timing Pattern vs Mean Peg Deviation
+
+| Timing | black_thursday | sustained_bear |
+|:---:|:---:|:---:|
+| Regular (75s) | 7.52% | 10.05% |
+| Bursty (5s×10+gap) | 7.53% | 9.99% |
+| Slow (150s) | 7.52% | 10.05% |
+| Mixed (alternating) | 7.24% | 9.69% |
+
+#### Key Insight: Fifth Parameter Confirming AMM Depth Dominance
+
+This is the fifth parameter sweep (after TWAP window F-037, swap fee F-038, collateral ratio F-039, and now block timing F-040) confirming the same conclusion: **at $5M AMM depth, the system is robust to any parameter configuration.** The parameter hierarchy remains:
+
+1. **AMM depth** — determines solvency (F-011, F-015, F-031)
+2. **Everything else** — determines capital efficiency, peg tightness, and user experience, but NOT solvency
