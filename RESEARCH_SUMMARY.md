@@ -314,7 +314,7 @@ The oracle-free CDP flatcoin design is **viable but conditional**. The condition
 - TWAP manipulation resistance is strong (F-008: 48:1 dilution ratio)
 - Flash crash absorption is excellent (F-009: 2.4% mean deviation during a 50% crash)
 - Liquidation cascade immunity is real and significant (F-022: zero cascades at $5M)
-- System behavior is stable under stochastic noise (F-021: no boundary scenarios)
+- System behavior is stable under stochastic noise (F-021: no boundary scenarios). Monte Carlo confirms: 400/400 stochastic runs (100 seeds × 4 crash scenarios) produce zero bad debt with tight peg distributions (F-041)
 - Performance scales monotonically with liquidity — no cliff effects (F-015)
 - Historical ZEC price regimes are well within safety margins (F-018)
 - Arber exhaustion during sustained bears is actually the peg defense mechanism — AMM price inertia is a feature (F-028)
@@ -346,4 +346,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 40 findings across 228 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 41 findings across 229 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
