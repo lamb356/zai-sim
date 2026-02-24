@@ -6,7 +6,7 @@
 
 ## 1. Abstract
 
-We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 45 findings from 237 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
+We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 46 findings from 238 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
 
 ---
 
@@ -341,7 +341,7 @@ The oracle-free CDP flatcoin design is **viable but conditional**. The condition
 - Min collateral ratio at $5M: zero bad debt from 125% to 300% — CR is a capital efficiency parameter, not a safety parameter. AMM depth provides the solvency guarantee (F-039)
 - Block timing irregularity: regular, bursty, slow, and mixed block timing patterns produce <0.4% difference in peg deviation. Block-count TWAP is safe for Zcash's variable block times — AMM inertia dominates oracle sampling (F-040)
 - LP withdrawal during crashes: zero bad debt even at 90% liquidity removal. Removing 90% of AMM liquidity at crash onset degrades peg quality (32% max deviation) but produces no insolvency. LP flight is a peg quality concern, not a solvency concern, at 200% CR (F-042)
-- Economic attack profitability: all 4 attack strategies unprofitable for the attacker ($17K-$164K losses). However, sustained manipulation CAN trigger liquidations and create bad debt ($3,145) despite the 240-block TWAP defense. TWAP delays but does not fully prevent manipulation-induced liquidations. System is safe from rational profit-seekers but vulnerable to well-funded griefers (F-043)
+- Economic attack profitability: all 4 attack strategies unprofitable for the attacker ($17K-$164K losses). However, sustained manipulation CAN trigger liquidations and create bad debt ($3,145) despite the 240-block TWAP defense. TWAP delays but does not fully prevent manipulation-induced liquidations. System is safe from rational profit-seekers but vulnerable to well-funded griefers (F-043). F-046: $10M AMM or 48-block TWAP eliminates bad debt entirely; higher CR is counterproductive (300% CR makes attack profitable)
 
 ### The Bottom Line
 
@@ -349,4 +349,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 45 findings across 237 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 46 findings across 238 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*

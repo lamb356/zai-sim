@@ -1203,3 +1203,42 @@ The hierarchy remains:
 4. **Growing through a crash works**: All 3 Phase 2 runs PASS because continued liquidity injection during/after the crash supports AMM price recovery. This is better than static operation at the crash-time depth — a $1.4M growing pool outperforms a static $2.5M pool.
 
 5. **Zero bad debt universally**: Not a single dollar of bad debt across 15 runs at liquidity levels from $100K to $5M. The system's solvency guarantee (via AMM price inertia) holds even at bootstrap-level liquidity. Only peg quality degrades.
+
+---
+
+### F-046: Griefing Mitigation — $10M Pool or Shorter TWAP Eliminates Bad Debt
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | SECURITY |
+| **Scenario** | 8-config suite testing the sustained manipulation attack from F-043 (100K ZEC whale, 1K ZEC/block × 100 blocks, buyback over 10 blocks) against defensive configurations. Configs vary AMM depth ($5M/$10M), min CR (200%/250%/300%), and TWAP window (240/48 blocks). Flat $50 external price. 25 vaults per config at CR spread from min_ratio+10% to min_ratio+80%. |
+| **Finding** | **Two independent defenses eliminate bad debt: (1) $10M AMM depth, or (2) 48-block TWAP window.** At $5M with 240-block TWAP (baseline), the attacker creates $3,145 bad debt. Doubling to $10M → zero bad debt (whale loses $25K). Shortening TWAP to 48 blocks → zero bad debt (all vaults liquidate cleanly before bad debt accrues). However, shorter TWAP causes HARD FAIL (min TWAP $16 vs $39) because it tracks the manipulation faster — the same property that eliminates bad debt also amplifies peg deviation. Surprising: 300% CR at $5M makes the attack *profitable* (+$15K) because the whale buys cheap liquidated collateral, yet bad debt drops to $117 (128:1 griefing ratio). Higher CR is counterproductive for griefing defense. |
+| **Root cause** | At $5M, the 100K ZEC whale is 100% of pool reserves — massive manipulation power. At $10M, the whale is 50% of reserves — slippage doubles per trade, TWAP moves less, and the minimum TWAP ($42.61 vs $39.01) stays above the effective liquidation threshold. With 48-block TWAP, the manipulation registers faster — all 25 vaults liquidate within the attack window, but the rapid TWAP response means liquidations happen at higher TWAP prices (less underwater), producing zero bad debt. The 240-block TWAP delays liquidation recognition, so when liquidations finally trigger, vaults are deeper underwater → bad debt. The 300% CR paradox: higher CR vaults have more collateral, so when liquidated, the whale's ZAI buys proportionally more cheap ZEC. The attack becomes self-funding at 300% CR. |
+| **Implication** | **For griefing resistance, deployers should either: (A) use $10M+ AMM depth (zero bad debt, whale loses $25K, 9 orderly liquidations), or (B) use shorter TWAP windows (zero bad debt but worse peg quality).** Option A is strictly superior — it reduces both bad debt AND peg deviation. Higher min CR does NOT help against griefing (makes it worse at 300%). The recommended anti-griefing config is $10M / 200% CR / 240-block TWAP. If $10M is not achievable, 48-block TWAP at $5M eliminates bad debt but at significant peg quality cost. |
+| **Strength/Weakness** | **Strength** — Multiple viable defenses exist. $10M depth eliminates griefing as a concern entirely (whale loses $25K for zero system damage). Even at $5M baseline, the 5.4:1 griefing ratio means the attacker loses $5 for every $1 of damage — already expensive. |
+
+#### Configuration Comparison
+
+| Config | Parameters | Verdict | Whale P&L | Liqs | Bad Debt | Grief Ratio | Min TWAP | Lowest Liq CR |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| baseline | $5M / 200% / 5h | HARD FAIL | -$16,899 | 16 | $3,145 | 5.4:1 | $39.01 | 210% |
+| cr_250 | $5M / 250% / 5h | HARD FAIL | -$1,930 | 21 | $1,392 | 1.4:1 | $39.00 | 260% |
+| cr_300 | $5M / 300% / 5h | HARD FAIL | +$14,954 | 25 | $117 | 128:1 | $38.99 | 310% |
+| **deep_pool** | **$10M / 200% / 5h** | **SOFT FAIL** | **-$24,681** | **9** | **$0** | **∞** | **$42.61** | 210% |
+| deep_cr_250 | $10M / 250% / 5h | SOFT FAIL | -$18,885 | 12 | $0 | ∞ | $42.57 | 260% |
+| deep_cr_300 | $10M / 300% / 5h | SOFT FAIL | -$11,804 | 15 | $0 | ∞ | $42.64 | 310% |
+| short_twap | $5M / 200% / 1h | HARD FAIL | -$10,885 | 25 | $0 | ∞ | $16.38 | 210% |
+| short_cr_250 | $5M / 250% / 1h | SOFT FAIL | -$6,422 | 25 | $0 | ∞ | $16.32 | 260% |
+
+#### Key Insights
+
+1. **$10M AMM is the cleanest defense**: Zero bad debt, highest min TWAP ($42.61), fewest liquidations (9), largest attacker loss ($25K). Strictly dominates all other defenses.
+
+2. **Higher CR is counterproductive**: 250% CR reduces bad debt (1.4:1 ratio) but 300% CR makes the attack *profitable* for the whale (+$15K) because liquidated collateral is cheaper relative to debt. The griefing ratio paradox: 128:1 looks good but the attacker is actually making money.
+
+3. **Shorter TWAP is a double-edged sword**: 48-block TWAP eliminates bad debt (zero across both configs) but amplifies peg deviation (min TWAP $16 vs $39). All vaults liquidate because TWAP tracks the manipulation faster — effective but brutal.
+
+4. **The 240-block TWAP creates a "bad debt window"**: With long TWAP, liquidations trigger late and vaults are deeply underwater when they finally liquidate. This is the root cause of bad debt at $5M. The TWAP is too slow to liquidate before vaults go underwater, but fast enough to eventually trigger.
+
+5. **Attacker loss scales with pool depth**: $5M baseline: $17K loss. $10M: $25K loss. Deeper pools impose more slippage, making griefing 47% more expensive per unit of capital deployed.
