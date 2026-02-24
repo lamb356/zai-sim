@@ -349,4 +349,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 46 findings across 238 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 46 findings across 238 tests. Full data in [FINDINGS.md](FINDINGS.md). Formal derivations in [Mathematical Specification](docs/mathematical_specification.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
