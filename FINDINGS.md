@@ -1077,3 +1077,35 @@ The hierarchy remains:
 1. **Collateral ratio** — determines solvency margin
 2. **AMM depth** — determines peg tightness and price discovery quality
 3. **LP behavior** — affects AMM depth dynamically but cannot breach solvency at 200% CR
+
+### F-043: Economic Attack Profitability — All Attacks Unprofitable but System Takes Damage
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | SECURITY |
+| **Scenario** | 5-run suite: 4 attack strategies + baseline. Config: $5M AMM, 200% CR, 240-block TWAP, Tick controller, 50 max liquidations/block, 25 vaults at 210-280% CR. Flat $50 external price (except Attack 2: Black Thursday). Manual block stepping with whale AMM swaps injected before each `scenario.step()`. |
+| **Finding** | **All 4 attack strategies are unprofitable for the attacker, but 3 of 4 inflict system damage (liquidations + bad debt).** The whale loses $17K-$164K across attacks, but triggers 14-25 liquidations in the process. The sustained manipulation attack (100K ZEC over 100 blocks) causes $3,145 in bad debt and a HARD FAIL verdict despite costing the attacker $17K. The dump-and-hunt attack (50K ZEC over 10 blocks) triggers all 25 vault liquidations but generates only $42 in bad debt. The attacker cannot profit, but a well-funded griefing attack can degrade system health. |
+| **Root cause** | The AMM's constant-product formula imposes massive slippage costs on large swaps. A 50K ZEC dump through a 100K ZEC pool (50% of reserves) crashes spot from $50 to ~$23 but the whale receives only ~$1.66M ZAI for $2.5M worth of ZEC — a $833K slippage cost. The arber partially heals spot each block, but the 240-block TWAP window means sustained manipulation can eventually pull TWAP below liquidation thresholds. The whale pays far more in slippage than any potential profit from buying cheap liquidated collateral. The attack is a negative-sum game: the attacker loses, the system loses, only the arber profits. |
+| **Implication** | **AMM manipulation is economically irrational as a profit strategy but viable as a griefing/disruption strategy.** A whale with 100K ZEC ($5M) can trigger liquidations and create bad debt, even though they lose money doing so. This is analogous to a 51% attack being theoretically possible but economically irrational. For deployers, this means: (1) the system is safe from profit-motivated attacks, (2) it is not safe from state-sponsored or ideologically-motivated griefing with $5M+ capital, (3) the 210% CR vaults are most vulnerable — higher minimum CR (e.g., 250%) would significantly increase the attack cost. |
+| **Strength/Weakness** | **Strength (profit attacks) / Weakness (griefing)** — The system is economically secure against rational attackers but vulnerable to well-funded griefers willing to lose $17K+ to cause $3K in bad debt. |
+
+#### Attack Strategy Comparison
+
+| Attack | Capital | Whale P&L | P&L % | Liqs | Bad Debt | Min TWAP | System Verdict |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| baseline | $0 | $0 | 0% | 0 | $0 | $49.84 | PASS |
+| dump_and_hunt (50K ZEC / 10 blks) | $2.5M | -$50,983 | -2.04% | 25 | $41.72 | $22.90 | SOFT FAIL |
+| crash_amplify (10K ZEC @ BT crash) | $600K | -$163,987 | -27.33% | 14 | $0 | $40.03 | SOFT FAIL |
+| sustained (1K ZEC/blk × 100) | $5M | -$16,899 | -0.34% | 16 | $3,145 | $39.01 | HARD FAIL |
+| short_plus_dump (20K ZEC + $1M short) | $1M | -$29,119 | -2.91% | 24 | $0 | $36.06 | SOFT FAIL |
+
+#### Key Insights
+
+1. **Slippage is the attacker's enemy**: The constant-product AMM charges quadratically increasing slippage for large trades. The whale's $2.5M ZEC dump receives only $1.66M ZAI — a 33% haircut.
+
+2. **TWAP is NOT an invincible defense**: Contrary to the assumption from F-006 (zero liquidations across all scenarios), a deliberately manipulated AMM CAN push TWAP below liquidation thresholds. The 240-block TWAP delays but does not prevent manipulation-induced liquidations if the attacker sustains pressure for enough blocks.
+
+3. **Griefing ratio**: The sustained attack has a griefing ratio of ~5.4:1 ($17K attacker loss creates $3.1K bad debt). This is expensive but not prohibitively so for a determined adversary.
+
+4. **Vault CR is the defense lever**: The most vulnerable vaults (210% CR) are only 10% above the liquidation threshold. Increasing minimum CR to 250% would require a 20% TWAP drop for liquidation — significantly more expensive to attack.
