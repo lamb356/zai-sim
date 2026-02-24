@@ -6,7 +6,7 @@
 
 ## 1. Abstract
 
-We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 44 findings from 236 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
+We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 45 findings from 237 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
 
 ---
 
@@ -63,6 +63,7 @@ We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on
 - **Historical proxy paths:** 3 synthetic paths calibrated to real ZEC/USDT regimes (rally, ATL grind, max volatility)
 - **Agent degradation:** 5 arber quality configs testing capital, latency, and detection threshold
 - **Duration honesty:** Black Thursday at 24h (1152 blocks), sustained bear at 8.7 days (10K blocks) and 43 days (50K blocks), 90% decline survival at 43 days (50K blocks, 6 configs)
+- **Bootstrap path:** 6 liquidity levels ($100K–$5M) × 2 crash scenarios + 3 growing-liquidity-through-crash runs (F-045)
 - **LP economics:** $100K LP P&L across 4 scenarios — IL, fees, net returns
 - **Tx fee floor:** min_arb_profit sweep from $0 to $500 across 3 scenarios
 - **LP incentive mechanisms:** stability fee redistribution, protocol-owned liquidity (0-75%), IL-aware LP withdrawal dynamics (10 LPs × $500K, 50K blocks)
@@ -303,7 +304,7 @@ The simulator cannot answer the following questions, which require real-world da
 
 The oracle-free CDP flatcoin design is **viable but conditional**. The conditions are:
 
-1. **Sufficient AMM liquidity.** This is non-negotiable. At $500K, the system fails 69% of scenarios. At $5M, it passes 92%. At $10M+, it passes all scenarios including worst-case demand shocks. The protocol's launch plan must include a credible path to $5M+ AMM liquidity before CDPs are enabled.
+1. **Sufficient AMM liquidity.** This is non-negotiable. At $500K, the system fails 69% of scenarios. At $5M, it passes 92%. At $10M+, it passes all scenarios including worst-case demand shocks. The protocol's launch plan must include a credible path to $5M+ AMM liquidity before CDPs are enabled. Bootstrap path (F-045): CDPs can be enabled at $2.5M (both BT and FC pass); flash-crash-only CDPs viable from $250K with 300% CR.
 
 2. **Acceptance of the zombie vault tradeoff.** The protocol community must understand and accept that during severe market crashes, vaults will appear healthy to the protocol while being underwater by external standards. This is not a bug — it is the mechanism that prevents death spirals. The community must decide whether death spiral immunity is worth the zombie vault risk.
 
@@ -348,4 +349,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 44 findings across 236 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 45 findings across 237 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*

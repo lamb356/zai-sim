@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZAI Simulation — Master Summary</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;color:#333}
+header{background:#1a1a2e;color:#fff;padding:24px 32px}
+header h1{font-size:1.4em;font-weight:500}
+.summary-line{margin-top:8px;font-size:1em;opacity:0.9}
+main{max-width:1200px;margin:0 auto;padding:24px}
+section{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:0.9em}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #e0e0e0}
+th{background:#f8f9fa;font-weight:600}
+a{color:#4285f4;text-decoration:none}
+a:hover{text-decoration:underline}
+.badge{padding:3px 10px;border-radius:3px;font-weight:700;font-size:0.8em}
+.badge.pass{background:#34a853;color:#fff}
+.badge.soft-fail{background:#ea8c00;color:#fff}
+.badge.hard-fail{background:#ea4335;color:#fff}
+footer{text-align:center;padding:16px;color:#999;font-size:0.8em}
+</style>
+</head>
+<body>
+<header>
+ <h1>ZAI Simulation — Master Summary</h1>
+ <div class="summary-line">10 / 15 scenarios passed</div>
+</header>
+<main>
+<section>
+<table>
+<tr>
+ <th>Scenario</th><th>Verdict</th><th>Mean Peg Dev</th>
+ <th>Bad Debt</th><th>Liquidations</th><th>Halt Blocks</th><th>Final Price</th>
+</tr>
+<tr><td><a href="boot_boot_100k_bt.html">boot_boot_100k_bt</a></td><td><span class="badge hard-fail">HARD FAIL</span></td><td>29.28%</td><td>0.00</td><td>10</td><td>0</td><td>31.04</td></tr>
+<tr><td><a href="boot_boot_100k_fc.html">boot_boot_100k_fc</a></td><td><span class="badge hard-fail">HARD FAIL</span></td><td>6.05%</td><td>0.00</td><td>10</td><td>0</td><td>50.24</td></tr>
+<tr><td><a href="boot_boot_250k_bt.html">boot_boot_250k_bt</a></td><td><span class="badge soft-fail">SOFT FAIL</span></td><td>26.61%</td><td>0.00</td><td>10</td><td>0</td><td>35.32</td></tr>
+<tr><td><a href="boot_boot_250k_fc.html">boot_boot_250k_fc</a></td><td><span class="badge pass">PASS</span></td><td>4.48%</td><td>0.00</td><td>10</td><td>0</td><td>46.58</td></tr>
+<tr><td><a href="boot_boot_500k_bt.html">boot_boot_500k_bt</a></td><td><span class="badge soft-fail">SOFT FAIL</span></td><td>23.43%</td><td>0.00</td><td>10</td><td>0</td><td>34.16</td></tr>
+<tr><td><a href="boot_boot_500k_fc.html">boot_boot_500k_fc</a></td><td><span class="badge pass">PASS</span></td><td>3.25%</td><td>0.00</td><td>6</td><td>0</td><td>48.39</td></tr>
+<tr><td><a href="boot_boot_1m_bt.html">boot_boot_1m_bt</a></td><td><span class="badge hard-fail">HARD FAIL</span></td><td>14.20%</td><td>0.00</td><td>10</td><td>0</td><td>39.82</td></tr>
+<tr><td><a href="boot_boot_1m_fc.html">boot_boot_1m_fc</a></td><td><span class="badge pass">PASS</span></td><td>2.72%</td><td>0.00</td><td>1</td><td>0</td><td>47.78</td></tr>
+<tr><td><a href="boot_boot_2_5m_bt.html">boot_boot_2_5m_bt</a></td><td><span class="badge pass">PASS</span></td><td>5.94%</td><td>0.00</td><td>2</td><td>0</td><td>45.83</td></tr>
+<tr><td><a href="boot_boot_2_5m_fc.html">boot_boot_2_5m_fc</a></td><td><span class="badge pass">PASS</span></td><td>2.19%</td><td>0.00</td><td>0</td><td>0</td><td>47.95</td></tr>
+<tr><td><a href="boot_boot_5m_bt.html">boot_boot_5m_bt</a></td><td><span class="badge pass">PASS</span></td><td>3.03%</td><td>0.00</td><td>0</td><td>0</td><td>47.89</td></tr>
+<tr><td><a href="boot_boot_5m_fc.html">boot_boot_5m_fc</a></td><td><span class="badge pass">PASS</span></td><td>2.06%</td><td>0.00</td><td>0</td><td>0</td><td>47.89</td></tr>
+<tr><td><a href="boot_grow_crash_100.html">boot_grow_crash_100</a></td><td><span class="badge pass">PASS</span></td><td>12.46%</td><td>0.00</td><td>8</td><td>0</td><td>42.84</td></tr>
+<tr><td><a href="boot_grow_crash_250.html">boot_grow_crash_250</a></td><td><span class="badge pass">PASS</span></td><td>5.68%</td><td>0.00</td><td>3</td><td>0</td><td>46.11</td></tr>
+<tr><td><a href="boot_grow_crash_400.html">boot_grow_crash_400</a></td><td><span class="badge pass">PASS</span></td><td>3.28%</td><td>0.00</td><td>1</td><td>0</td><td>47.27</td></tr>
+
+</table>
+</section>
+<section>
+<h3>Data Export</h3>
+<button onclick="downloadAll()" style="padding:8px 20px;background:#4285f4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.9em">Download All (CSV)</button>
+</section>
+<script>
+const SCENARIOS=[{name:"boot_boot_100k_bt",verdict:"HARD FAIL",mean_dev:29.283918,max_dev:65.895381,bad_debt:0.00,liqs:10,halts:0,price:31.0413},{name:"boot_boot_100k_fc",verdict:"HARD FAIL",mean_dev:6.054346,max_dev:51.278120,bad_debt:0.00,liqs:10,halts:0,price:50.2421},{name:"boot_boot_250k_bt",verdict:"SOFT FAIL",mean_dev:26.605039,max_dev:54.284540,bad_debt:0.00,liqs:10,halts:0,price:35.3170},{name:"boot_boot_250k_fc",verdict:"PASS",mean_dev:4.482455,max_dev:44.049877,bad_debt:0.00,liqs:10,halts:0,price:46.5778},{name:"boot_boot_500k_bt",verdict:"SOFT FAIL",mean_dev:23.428566,max_dev:34.770391,bad_debt:0.00,liqs:10,halts:0,price:34.1555},{name:"boot_boot_500k_fc",verdict:"PASS",mean_dev:3.249670,max_dev:32.246920,bad_debt:0.00,liqs:6,halts:0,price:48.3867},{name:"boot_boot_1m_bt",verdict:"HARD FAIL",mean_dev:14.200935,max_dev:20.359784,bad_debt:0.00,liqs:10,halts:0,price:39.8201},{name:"boot_boot_1m_fc",verdict:"PASS",mean_dev:2.723073,max_dev:18.096136,bad_debt:0.00,liqs:1,halts:0,price:47.7791},{name:"boot_boot_2_5m_bt",verdict:"PASS",mean_dev:5.944801,max_dev:8.344690,bad_debt:0.00,liqs:2,halts:0,price:45.8277},{name:"boot_boot_2_5m_fc",verdict:"PASS",mean_dev:2.185606,max_dev:7.903272,bad_debt:0.00,liqs:0,halts:0,price:47.9453},{name:"boot_boot_5m_bt",verdict:"PASS",mean_dev:3.025199,max_dev:4.229309,bad_debt:0.00,liqs:0,halts:0,price:47.8853},{name:"boot_boot_5m_fc",verdict:"PASS",mean_dev:2.057950,max_dev:4.229309,bad_debt:0.00,liqs:0,halts:0,price:47.8853},{name:"boot_grow_crash_100",verdict:"PASS",mean_dev:12.456946,max_dev:14.327774,bad_debt:0.00,liqs:8,halts:0,price:42.8361},{name:"boot_grow_crash_250",verdict:"PASS",mean_dev:5.675923,max_dev:7.779846,bad_debt:0.00,liqs:3,halts:0,price:46.1101},{name:"boot_grow_crash_400",verdict:"PASS",mean_dev:3.276258,max_dev:5.458884,bad_debt:0.00,liqs:1,halts:0,price:47.2706}];
+function downloadAll(){
+ let csv='scenario,verdict,mean_peg_deviation,max_peg_deviation,total_bad_debt,total_liquidations,halt_blocks,final_amm_price\n';
+ for(const s of SCENARIOS){
+  csv+=s.name+','+s.verdict+','+s.mean_dev+','+s.max_dev+','+s.bad_debt+','+s.liqs+','+s.halts+','+s.price+'\n';
+ }
+ const blob=new Blob([csv],{type:'text/csv'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;a.download='zai_all_scenarios.csv';a.click();
+ URL.revokeObjectURL(url);
+}
+</script>
+</main>
+<footer>Generated by zai-sim</footer>
+</body>
+</html>
