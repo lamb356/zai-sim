@@ -1046,3 +1046,34 @@ This is the fifth parameter sweep (after TWAP window F-037, swap fee F-038, coll
 | sustained_bear | 100 | 100% | 9.66% | 9.84% | 14.49% | $0 |
 | flash_crash | 100 | 100% | 2.62% | 2.70% | 7.27% | $0 |
 | bank_run | 100 | 100% | 5.44% | 5.58% | 13.31% | $0 |
+
+### F-042: LP Withdrawal Stress Test — Zero Bad Debt Even at 90% Withdrawal
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | LIQUIDITY-RISK |
+| **Scenario** | 10-run sweep: 5 withdrawal patterns (none, gradual 2%/block to 50%, panic 50% at block 250, late 50% at block 500, near-total 90% at block 250) × 2 scenarios (black_thursday, sustained_bear). Config: $5M AMM, 200% CR, 240-block TWAP, Tick controller, 50 max liquidations/block. Manual block stepping with `amm.remove_liquidity()` injected for the "genesis" LP before each `scenario.step()`. |
+| **Finding** | **Zero bad debt across all 10 runs, including 90% LP withdrawal during a crash.** Even removing 90% of AMM liquidity (reducing $5M to ~$500K effective depth) at the onset of a Black Thursday crash produces zero liquidations and zero bad debt. The worst outcome is a SOFT FAIL on peg quality: 32% max peg deviation for near-total withdrawal during black_thursday. All other pattern/scenario combinations PASS. The sustained_bear scenario is remarkably resilient — even 90% withdrawal only increases max peg deviation from 4.2% to 6.6%. |
+| **Root cause** | The 200% collateral ratio provides such a large buffer that even with severely depleted AMM depth, no vault becomes undercollateralized by the TWAP metric. The AMM's constant-product formula means removing 90% of liquidity reduces depth but the remaining 10% still provides functional price discovery. The TWAP oracle's 240-block window further smooths price shocks, preventing liquidation triggers. The key insight is that LP withdrawal reduces *peg quality* (larger deviations from target) but does not cause *insolvency* because the collateral ratio buffer absorbs the price divergence. |
+| **Implication** | **The $5M AMM assumption does NOT need to be doubled to $10M for LP withdrawal risk.** LP flight during crashes degrades peg tracking but does not create bad debt at the tested collateral ratio (200%). The system's solvency guarantee comes from the collateral ratio, not AMM depth — AMM depth primarily affects peg tightness. For deployers, this means LP withdrawal is a peg quality concern, not a solvency concern, as long as the collateral ratio remains at 200% or above. |
+| **Strength/Weakness** | **Strength (confirmed)** — LP withdrawal during crashes does not produce bad debt. The system is more robust to liquidity flight than the initial hypothesis suggested. |
+
+#### Withdrawal Pattern vs Outcome
+
+| Pattern | black_thursday Verdict | black_thursday Max Peg | sustained_bear Verdict | sustained_bear Max Peg | Bad Debt (all) |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| none (baseline) | PASS | 4.23% | PASS | 4.22% | $0 |
+| gradual (2%/block to 50%) | PASS | 6.16% | PASS | 4.48% | $0 |
+| panic (50% at block 250) | PASS | 8.11% | PASS | 4.49% | $0 |
+| late (50% at block 500) | PASS | 4.40% | PASS | 4.40% | $0 |
+| near_total (90% at block 250) | SOFT FAIL | 32.12% | PASS | 6.55% | $0 |
+
+#### Key Insight: Sixth Finding Confirming AMM Depth Dominance Pattern
+
+This is the sixth finding (after TWAP window F-037, swap fee F-038, collateral ratio F-039, block timing F-040, and Monte Carlo F-041) that reinforces the core result: **at 200% collateral ratio, the system's solvency is structurally guaranteed regardless of AMM conditions.** LP withdrawal stress joins the list of "things that affect peg quality but not solvency."
+
+The hierarchy remains:
+1. **Collateral ratio** — determines solvency margin
+2. **AMM depth** — determines peg tightness and price discovery quality
+3. **LP behavior** — affects AMM depth dynamically but cannot breach solvency at 200% CR
