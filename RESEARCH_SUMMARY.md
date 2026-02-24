@@ -6,7 +6,7 @@
 
 ## 1. Abstract
 
-We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 43 findings from 235 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
+We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on Zcash that uses an on-chain AMM (constant-product, Uniswap V2 style) as its sole price oracle via TWAP. The simulator models 13 stress scenarios (Black Thursday, sustained bear markets, flash crashes, demand shocks, bank runs, TWAP manipulation, and more), 7 agent types (arbitrageurs, demand agents, miners, CDP holders, LP agents, IL-aware LP agents, attackers), and configurable parameters (collateral ratio, TWAP window, controller type, circuit breakers, liquidation mode). Across 44 findings from 236 validated tests, the central result is a fundamental tradeoff: the AMM's price inertia provides natural immunity to MakerDAO-style liquidation death spirals, but at the cost of "zombie vaults" — positions that appear solvent to the protocol while being underwater by external market standards. The system is viable at $5M+ AMM liquidity (12/13 scenarios pass), but the zombie vault problem is inherent to oracle-free design and cannot be mitigated without reintroducing an external price source.
 
 ---
 
@@ -62,7 +62,7 @@ We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on
 - **Parameter sensitivity:** Swept collateral ratio and TWAP window across ranges
 - **Historical proxy paths:** 3 synthetic paths calibrated to real ZEC/USDT regimes (rally, ATL grind, max volatility)
 - **Agent degradation:** 5 arber quality configs testing capital, latency, and detection threshold
-- **Duration honesty:** Black Thursday at 24h (1152 blocks), sustained bear at 8.7 days (10K blocks) and 43 days (50K blocks)
+- **Duration honesty:** Black Thursday at 24h (1152 blocks), sustained bear at 8.7 days (10K blocks) and 43 days (50K blocks), 90% decline survival at 43 days (50K blocks, 6 configs)
 - **LP economics:** $100K LP P&L across 4 scenarios — IL, fees, net returns
 - **Tx fee floor:** min_arb_profit sweep from $0 to $500 across 3 scenarios
 - **LP incentive mechanisms:** stability fee redistribution, protocol-owned liquidity (0-75%), IL-aware LP withdrawal dynamics (10 LPs × $500K, 50K blocks)
@@ -109,7 +109,7 @@ We built a block-level simulator for ZAI, a proposed oracle-free CDP flatcoin on
 
 | # | Category | Finding | Impact |
 |---|----------|---------|--------|
-| F-024 | DIVERGENCE | Duration honesty: sustained bear SOFT FAILs at 43 days (11.8% mean peg), PASSES at 8.7 days (5.5%). Arber capital exhaustion over weeks. | Multi-week resilience requires arber replenishment |
+| F-024 | DIVERGENCE | Duration honesty: sustained bear SOFT FAILs at 43 days (11.8% mean peg), PASSES at 8.7 days (5.5%). Arber capital exhaustion over weeks. | Multi-week resilience requires arber replenishment. F-044: 90% decline ($50→$5) PASSes at $20M with 3.3% mean peg |
 | F-025 | DIVERGENCE | LP economics: IL negligible (-0.02%), losses driven by ZEC price exposure. Fee income $3-$9 per $100K LP — economically insignificant | LPs need external incentives (mining, subsidies) |
 | F-026 | DIVERGENCE | Tx fee floor ($0.50): zero impact on peg deviation at $5M. Arb profit ($50-$500/trade) dwarfs tx costs | Zcash tx fees not a binding constraint |
 
@@ -326,7 +326,7 @@ The oracle-free CDP flatcoin design is **viable but conditional**. The condition
 ### What Doesn't Work
 
 - Zombie vaults are inherent and cannot be fixed without an oracle (F-017, F-023)
-- Sustained directional moves exhaust arber capital regardless of configuration (F-005, F-024: SOFT FAIL at 43 days)
+- Sustained directional moves exhaust arber capital regardless of configuration (F-005, F-024: SOFT FAIL at 43 days). F-044: $20M liquidity PASSes even 90% decline; $5M-$10M SOFT FAILs with zero bad debt
 - Capital-dominant agents ($1M+) overwhelm even $5M AMMs (F-013)
 - CDP parameters are irrelevant until liquidations actually fire (F-019)
 - LP fee income is economically insignificant ($3-$9 per $100K LP) — external incentives required (F-025). Stability fee redistribution adds only $0.01/LP (F-027A). IL-aware LPs drain pool to $77K in 2.5 days (F-027C). Protocol-owned liquidity at 25-50% is the only viable solution (F-027B).
@@ -348,4 +348,4 @@ ZAI's oracle-free design trades one catastrophic risk (death spirals) for one ch
 
 ---
 
-*Generated from 43 findings across 235 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*
+*Generated from 44 findings across 236 tests. Full data in [FINDINGS.md](FINDINGS.md). Simulator source: `zai-sim/` (Rust, 13 modules, 13+6 scenarios, 7 agent types).*

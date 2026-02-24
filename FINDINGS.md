@@ -1109,3 +1109,40 @@ The hierarchy remains:
 3. **Griefing ratio**: The sustained attack has a griefing ratio of ~5.4:1 ($17K attacker loss creates $3.1K bad debt). This is expensive but not prohibitively so for a determined adversary.
 
 4. **Vault CR is the defense lever**: The most vulnerable vaults (210% CR) are only 10% above the liquidation threshold. Increasing minimum CR to 250% would require a 20% TWAP drop for liquidation — significantly more expensive to attack.
+
+---
+
+### F-044: Sustained Bear 50K Survival — 90% Decline ($50→$5) Over 43 Days
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-02-23 |
+| **Category** | DIVERGENCE |
+| **Scenario** | 6-config suite: standard ($5M), deep_pool ($10M), high_cr (300% CR), short_twap (1h TWAP), combined ($10M/300%/1h), maximum ($20M/300%/1h). All: Tick controller, 50 max liquidations/block, 25 vaults per config (CR spread from min_ratio+10% to min_ratio+80%). Linear decline $50→$5 over 50,000 blocks (~43 days). |
+| **Finding** | **The $20M "maximum" config is the only configuration that PASSes a 90% decline (3.26% mean peg, 5.53% max).** All other configs SOFT FAIL. Zero bad debt across all 6 configs. Zero insolvency. The $10M configs (deep_pool, combined) achieve ~6.4% mean peg — close to PASS threshold. Standard $5M achieves 12.3% mean peg, identical to F-024's 70% decline result (11.8%). Key surprise: **TWAP window has zero effect** — standard (240-block) and short_twap (48-block) produce identical results. Liquidity is the only meaningful lever. |
+| **Root cause** | The arber exhausts in all configs within the first 2,500 blocks (~5% of the run), after which AMM price disconnects from external. Deeper pools exhaust the arber faster (block 312 at $20M vs block 2,483 at $5M) but the AMM retains more inertia post-exhaustion due to higher k-constant. A $20M AMM's constant-product curve is 4x harder to move per unit of trade than a $5M pool, so even residual miner selling causes less price deviation. The TWAP window is irrelevant because (a) the arber exhausts within both windows and (b) after exhaustion, there's minimal trading to create TWAP divergence from spot. |
+| **Implication** | **$20M AMM liquidity can survive even a 90% decline with zero bad debt and PASS verdict.** This is a 4x premium over the $5M recommendation. For deployers: if the threat model includes sustained 90% crashes, protocol-owned liquidity must be $10M+ (SOFT FAIL at 6.4%) or $20M+ (PASS at 3.3%). The high_cr config (300%) is counterproductive — it forces all 25 vaults to liquidate (vs 14 at 200%) because the higher CR vaults are opened further from the CR floor and the TWAP eventually reaches them. The "combined" config shows diminishing returns: $10M+300%+1h TWAP (6.52%) is barely different from $10M+200%+5h (6.35%). |
+| **Strength/Weakness** | **Strength** — Zero bad debt and zero insolvency across ALL 6 configs proves the system never breaks, even under 90% decline. The question is only peg quality, not survival. At $20M, even peg quality is maintained. |
+
+#### Configuration Comparison
+
+| Config | AMM | CR | TWAP | Verdict | Mean Peg | Max Peg | Liqs | Bad Debt | Zombies | Solvency | Exhaust Blk |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| standard | $5M | 200% | 5h | SOFT FAIL | 12.31% | 20.26% | 14 | $0 | 11 | 2.12x | 2,483 |
+| deep_pool | $10M | 200% | 5h | SOFT FAIL | 6.35% | 10.64% | 5 | $0 | 20 | 2.26x | 1,301 |
+| high_cr | $5M | 300% | 5h | SOFT FAIL | 13.18% | 21.78% | 25 | $0 | 0 | ∞ | 2,562 |
+| short_twap | $5M | 200% | 1h | SOFT FAIL | 12.31% | 20.26% | 14 | $0 | 11 | 2.12x | 2,483 |
+| combined | $10M | 300% | 1h | SOFT FAIL | 6.52% | 11.00% | 10 | $0 | 15 | 3.20x | 1,301 |
+| maximum | $20M | 300% | 1h | **PASS** | **3.26%** | **5.53%** | 3 | $0 | 22 | 3.30x | 312 |
+
+#### Key Insights
+
+1. **Liquidity is the only lever**: $5M→$10M halves mean peg (12.3%→6.4%), $10M→$20M halves again (6.4%→3.3%). TWAP window and CR have negligible impact on peg quality.
+
+2. **TWAP window is irrelevant during sustained bears**: standard (240-block) and short_twap (48-block) produce byte-identical results. After arber exhaustion, both TWAP and spot converge to the same frozen AMM price.
+
+3. **Higher CR is counterproductive for peg**: 300% CR forces more liquidations (25 vs 14), liquidating the very vaults that provide system collateral. The high_cr config has the worst mean peg (13.18%) of any same-liquidity config.
+
+4. **Zero bad debt is universal**: The system NEVER generates bad debt under any tested configuration, even at 90% decline. This confirms F-022's finding that AMM inertia prevents death spirals — it holds under the most extreme sustained decline tested.
+
+5. **Zombie vaults are the tradeoff**: The maximum config has the most zombies (22) because its deep pool keeps AMM price highest relative to external — more vaults appear healthy to the protocol while being underwater externally. This is the core oracle-free tradeoff from F-017/F-023.
