@@ -1,0 +1,15 @@
+{
+  "name": "zai-explainer",
+  "version": "1.0.0",
+  "description": "Animated SVG explainer for the ZAI oracle-free CDP flatcoin on Zcash",
+  "main": "ZaiExplainer.jsx",
+  "dependencies": {
+    "motion": "^12.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "vite": "^7.3.1"
+  }
+}
